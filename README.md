@@ -1,1 +1,1 @@
-# album-bot
+# albumbot
