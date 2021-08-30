@@ -43,7 +43,6 @@ func onMessageCreate(session *discordgo.Session, event *discordgo.MessageCreate)
 	/* メッセージを受け取った際の処理 */
 }
 
-//DISCORD_TOKENは.envで管理予定
 func loadToken() string {
 	err := godotenv.Load()
 	if err != nil {
