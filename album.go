@@ -6,11 +6,13 @@ import (
 	"io/ioutil"
 )
 
+// Albumはタイトルとそれに紐付けられた画像URLの集合です。
 type Album struct {
 	Title string
 	Urls  []string
 }
 
+// Albumsはアルバムデータが保存されたJsonファイル全体を表現します。
 type Albums struct {
 	Albums []Album
 }
@@ -24,7 +26,6 @@ func GetAlbumUrls(title string) (urls []string, e error) {
 
 	var albums Albums
 	json.Unmarshal(raw, &albums)
-	fmt.Println(albums.Albums)
 	for _, a := range albums.Albums {
 		if a.Title == title {
 			return a.Urls, nil
