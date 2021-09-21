@@ -11,15 +11,15 @@ import (
 )
 
 func main() {
+
+	discordToken := "Bot " + loadToken()
+
 	session, err := discordgo.New()
 	if err != nil {
 		fmt.Println("Error in create session")
 		panic(err)
 	}
-
-	discordToken := loadToken()
 	session.Token = discordToken
-
 	session.AddHandler(onMessageCreate)
 
 	if err = session.Open(); err != nil {
@@ -36,11 +36,18 @@ func main() {
 	return
 }
 
-func onMessageCreate(session *discordgo.Session, event *discordgo.MessageCreate) {
-	if event.Author.Bot {
+func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if m.Author.ID == s.State.User.ID {
 		return
 	}
-	/* メッセージを受け取った際の処理 */
+
+	if m.Content == "!Hello" {
+		s.ChannelMessageSend(m.ChannelID, "Hello")
+	}
+
+	/*if strings.Contains(m.Content, "title:") && strings.Contains(m.Content, "urls:") {
+		var tmp = m.ContentWithMentionsReplaced()
+	}*/
 }
 
 func loadToken() string {
