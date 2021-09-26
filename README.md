@@ -6,5 +6,5 @@
 https://discordapp.com/channels/252122237761486849/788388972825018368/891657884570619934
 
 ・起動コマンド
-$ go run main.go
+$ go run main.go  
 -booted!が出たら成功
