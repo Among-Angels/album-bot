@@ -59,7 +59,7 @@ func GetAlbumPage(title string, start, count int) (urls []string, e error) {
 		return nil, e
 	}
 
-	// count込で溢れた場合末尾まで返す(この仕様でok...?)
+	// count込で溢れた場合末尾まで返す
 	if len(allUrls) < start+count {
 		return allUrls[start:], nil
 	}
