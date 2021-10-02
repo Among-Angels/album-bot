@@ -45,14 +45,8 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if m.Content == "!taisho" {
 		urls, e := GetAlbumUrls("taisho")
-		//var errortxt = e
 		fmt.Println(e)
-		//s.ChannelMessageSend(m.ChannelID, printError(e))
 		s.ChannelMessageSend(m.ChannelID, urls[0])
-	}
-
-	if m.Content == "!oemori" {
-		s.ChannelMessageSend(m.ChannelID, "oemori")
 	}
 
 	/*if strings.Contains(m.Content, "title:") && strings.Contains(m.Content, "urls:") {
