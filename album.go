@@ -20,7 +20,7 @@ type Albums struct {
 
 // GetAlbumUrlsは与えられたアルバム名の画像のURLのリストを返します。
 func GetAlbumUrls(title string) (urls []string, e error) {
-	raw, err := ioutil.ReadFile("./dataSet.json")
+	raw, err := ioutil.ReadFile("dataSet.json")
 	if err != nil {
 		return nil, err
 	}
