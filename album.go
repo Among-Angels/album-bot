@@ -7,6 +7,8 @@ import (
 	"os"
 )
 
+const dataPath = "dataSet.json"
+
 // Albumはタイトルとそれに紐付けられた画像URLの集合です。
 type Album struct {
 	Title string
@@ -20,7 +22,7 @@ type Albums struct {
 
 // GetAlbumUrlsは与えられたアルバム名の画像のURLのリストを返します。
 func GetAlbumUrls(title string) (urls []string, e error) {
-	raw, err := ioutil.ReadFile("dataSet.json")
+	raw, err := ioutil.ReadFile(dataPath)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +72,7 @@ func GetAlbumPage(title string, start, count int) (urls []string, e error) {
 // PostAlbumUrlは与えられたアルバム名のUrl配列に与えられたUrlを追加します
 // ファイル全部読んで全部上書きする脳筋処理なので改良の余地ありです。。
 func PostAlbumUrl(albumTitle, url string) (e error) {
-	raw, err := ioutil.ReadFile("./dataSet.json")
+	raw, err := ioutil.ReadFile(dataPath)
 	if err != nil {
 		return err
 	}
@@ -86,7 +88,7 @@ func PostAlbumUrl(albumTitle, url string) (e error) {
 		if err != nil {
 			return err
 		}
-		writeError := ioutil.WriteFile("dataSet.json", marshaled, os.ModePerm)
+		writeError := ioutil.WriteFile(dataPath, marshaled, os.ModePerm)
 		if writeError != nil {
 			return writeError
 		}
