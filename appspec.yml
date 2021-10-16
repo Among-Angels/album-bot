@@ -1,5 +1,5 @@
 version: 0.0
 os: linux
 files:
-  - source: album.go
+  - source: /
     destination: /albumbot
