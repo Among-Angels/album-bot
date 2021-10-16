@@ -3,3 +3,5 @@ os: linux
 files:
   - source: /main
     destination: /albumbot
+  - source: /.env
+    destination: /albumbot
