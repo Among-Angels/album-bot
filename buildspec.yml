@@ -1,6 +1,8 @@
 version: 0.2
 
 env:
+  parameter-store:
+    DISCORD_TOKEN: DISCORD_TOKEN
   variables:
     GO_VERSION: 1.17.1
 phases:
@@ -19,7 +21,7 @@ phases:
   post_build:
     commands:
       - echo Start post_build...
-      - cd $CODEBUILD_SRC_DIR && touch .env && echo DISCORD_TOKEN=ODgxMjM0NTMyNTg0NTQyMjM4.YSp3nQ.IxgkG3wKXKP4BLhZpEH72eBvEWQ > .env
+      - cd $CODEBUILD_SRC_DIR && touch .env && echo DISCORD_TOKEN=$DISCORD_TOKEN > .env
 artifacts:
   files:
     - "**/*"

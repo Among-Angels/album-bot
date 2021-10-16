@@ -13,8 +13,6 @@ import (
 func New() {
 	discordToken := "Bot " + loadToken()
 
-	fmt.Println(discordToken)
-
 	session, err := discordgo.New()
 	if err != nil {
 		fmt.Println("Error in create session")
