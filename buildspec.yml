@@ -21,4 +21,4 @@ phases:
       - echo Start post_build...
 artifacts:
   files:
-    - $CODEBUILD_SRC_DIR/main
+    - $CODEBUILD_SRC_DIR
