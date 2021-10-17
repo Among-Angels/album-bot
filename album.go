@@ -20,15 +20,35 @@ type Albums struct {
 	Albums []Album
 }
 
-// GetAlbumUrlsは与えられたアルバム名の画像のURLのリストを返します。
-func GetAlbumUrls(title string) (urls []string, e error) {
+func getAlbums() (*Albums, error) {
 	raw, err := ioutil.ReadFile(dataPath)
 	if err != nil {
 		return nil, err
 	}
-
 	var albums Albums
 	json.Unmarshal(raw, &albums)
+	return &albums, nil
+}
+
+// GetAlbumTitlesはアルバム名のリストを返します。
+func GetAlbumTitles() (titles []string, e error) {
+	albums, err := getAlbums()
+	if err != nil {
+		return nil, err
+	}
+	titles = make([]string, len(albums.Albums))
+	for i, a := range albums.Albums {
+		titles[i] = a.Title
+	}
+	return titles, nil
+}
+
+// GetAlbumUrlsは与えられたアルバム名の画像のURLのリストを返します。
+func GetAlbumUrls(title string) (urls []string, e error) {
+	albums, err := getAlbums()
+	if err != nil {
+		return nil, err
+	}
 	for _, a := range albums.Albums {
 		if a.Title == title {
 			return a.Urls, nil
@@ -72,13 +92,10 @@ func GetAlbumPage(title string, start, count int) (urls []string, e error) {
 // PostAlbumUrlは与えられたアルバム名のUrl配列に与えられたUrlを追加します
 // ファイル全部読んで全部上書きする脳筋処理なので改良の余地ありです。。
 func PostAlbumUrl(albumTitle, url string) (e error) {
-	raw, err := ioutil.ReadFile(dataPath)
+	albums, err := getAlbums()
 	if err != nil {
 		return err
 	}
-
-	var albums Albums
-	json.Unmarshal(raw, &albums)
 	for index, album := range albums.Albums {
 		if album.Title != albumTitle {
 			continue
