@@ -20,6 +20,7 @@ func New() {
 	}
 	session.Token = discordToken
 	session.AddHandler(onMessageCreate)
+	session.AddHandler(onReactionAdd)
 
 	if err = session.Open(); err != nil {
 		panic(err)
@@ -34,6 +35,11 @@ func New() {
 	<-sc
 	return
 }
+
+func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
+	s.ChannelMessageSend(r.ChannelID, "スタァライト")
+}
+
 func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID {
 		return
