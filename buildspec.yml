@@ -3,24 +3,15 @@ version: 0.2
 env:
   parameter-store:
     DISCORD_TOKEN: DISCORD_TOKEN
-  variables:
-    GO_VERSION: 1.17.1
 phases:
   install:
-    commands:
-      - wget https://storage.googleapis.com/golang/go${GO_VERSION}.linux-amd64.tar.gz
-      - tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
-      - export PATH="/usr/local/go/bin:$PATH" && export GOPATH="$HOME/go" && export PATH="$GOPATH/bin:$PATH"
-  pre_build:
-    commands:
-      - echo Start pre_build...
+    runtime-versions:
+      golang: 1.16
   build:
     commands:
-      - echo Start build...
       - cd $CODEBUILD_SRC_DIR && go build ./cmd/albumbot/main.go
   post_build:
     commands:
-      - echo Start post_build...
       - cd $CODEBUILD_SRC_DIR && touch .env && echo DISCORD_TOKEN=$DISCORD_TOKEN > .env
 artifacts:
   files:
