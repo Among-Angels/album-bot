@@ -5,6 +5,30 @@ import (
 	"testing"
 )
 
+func TestGetAlbumTitles(t *testing.T) {
+	wants := []string{"taisho", "oemori", "blank", "test"}
+	tests := []struct {
+		name       string
+		wantTitles []string
+		wantErr    bool
+	}{{
+		name:       "test",
+		wantTitles: wants,
+		wantErr:    false,
+	}}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotTitles, err := GetAlbumTitles()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetAlbumTitles() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotTitles, tt.wantTitles) {
+				t.Errorf("GetAlbumTitles() = %v, want %v", gotTitles, tt.wantTitles)
+			}
+		})
+	}
+}
 func TestGetAlbumUrls(t *testing.T) {
 	wants := []string{
 		"https://test1.png",
