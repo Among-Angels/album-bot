@@ -20,6 +20,7 @@ func New() {
 	}
 	session.Token = discordToken
 	session.AddHandler(onMessageCreate)
+	session.AddHandler(onReactionAdd)
 
 	if err = session.Open(); err != nil {
 		panic(err)
@@ -35,9 +36,6 @@ func New() {
 	return
 }
 func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if m.Author.ID == s.State.User.ID {
-		return
-	}
 
 	if m.Content == "!Hello" {
 		s.ChannelMessageSend(m.ChannelID, "Hello")
@@ -49,9 +47,26 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSend(m.ChannelID, urls[0])
 	}
 
-	/*if strings.Contains(m.Content, "title:") && strings.Contains(m.Content, "urls:") {
-		var tmp = m.ContentWithMentionsReplaced()
-	}*/
+	if m.Content == "!album" {
+
+		s.ChannelMessageSend(m.ChannelID, "1. taisho\\n2. oemori")
+		s.ChannelMessageSend(m.ChannelID, "番号を選んでね")
+	}
+
+	if m.Content == "番号を選んでね" && m.Author.ID == s.State.User.ID {
+		s.MessageReactionAdd(m.ChannelID, m.ID, "1️⃣")
+		s.MessageReactionAdd(m.ChannelID, m.ID, "2️⃣")
+	}
+
+}
+
+func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
+	if r.UserID != s.State.User.ID && r.MessageReaction.Emoji.Name == "1️⃣" {
+		urls, e := GetAlbumUrls("taisho")
+		fmt.Println(e)
+		s.ChannelMessageSend(r.ChannelID, urls[0])
+	}
+
 }
 
 func loadToken() string {
