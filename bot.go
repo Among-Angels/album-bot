@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
@@ -53,6 +54,14 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if m.Content == "!oemori" {
 		s.ChannelMessageSend(m.ChannelID, "oemori")
+	}
+
+	if m.Content == "!test" {
+		titles, err := GetAlbumTitles()
+		if err != nil {
+			fmt.Println(err)
+		}
+		s.ChannelMessageSend(m.ChannelID, strings.Join(titles, ","))
 	}
 
 	/*if strings.Contains(m.Content, "title:") && strings.Contains(m.Content, "urls:") {
