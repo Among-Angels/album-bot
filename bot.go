@@ -49,7 +49,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if m.Content == "!album" {
 
-		s.ChannelMessageSend(m.ChannelID, "1. taisho\\n2. oemori")
+		s.ChannelMessageSend(m.ChannelID, "1. taisho\n2. oemori")
 		s.ChannelMessageSend(m.ChannelID, "番号を選んでね")
 	}
 
@@ -65,6 +65,7 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 		urls, e := GetAlbumUrls("taisho")
 		fmt.Println(e)
 		s.ChannelMessageSend(r.ChannelID, urls[0])
+		s.ChannelMessageSend(r.ChannelID, r.MessageReaction.Emoji.ID)
 	}
 
 }
