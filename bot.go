@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
@@ -48,12 +49,17 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if m.Content == "!album" {
-
-		s.ChannelMessageSend(m.ChannelID, "1. taisho\n2. oemori")
-		s.ChannelMessageSend(m.ChannelID, "番号を選んでね")
+		titles, err := GetAlbumTitles()
+		if err != nil {
+			panic(err)
+		}
+		for i, v := range titles {
+			s.ChannelMessageSend(m.ChannelID, strconv.Itoa(i)+"."+v)
+		}
+		s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
 	}
 
-	if m.Content == "番号を選んでね" && m.Author.ID == s.State.User.ID {
+	if m.Content == "番号を選んでね！" && m.Author.ID == s.State.User.ID {
 		s.MessageReactionAdd(m.ChannelID, m.ID, "1️⃣")
 		s.MessageReactionAdd(m.ChannelID, m.ID, "2️⃣")
 	}
@@ -61,10 +67,18 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
+	titles, err := GetAlbumTitles()
+	if err != nil {
+		panic(err)
+	}
 	if r.UserID != s.State.User.ID && r.MessageReaction.Emoji.Name == "1️⃣" {
-		urls, e := GetAlbumUrls("taisho")
-		fmt.Println(e)
-		s.ChannelMessageSend(r.ChannelID, urls[0])
+		urls, err := GetAlbumUrls(titles[0])
+		if err != nil {
+			panic(err)
+		}
+		for _, url := range urls {
+			s.ChannelMessageSend(r.ChannelID, url)
+		}
 		s.ChannelMessageSend(r.ChannelID, r.MessageReaction.Emoji.ID)
 	}
 
