@@ -36,6 +36,18 @@ func New() {
 	<-sc
 	return
 }
+func getNumOptions() []string {
+	arr := []string{"1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"}
+	return arr
+}
+func containAtIndexNum(s []string, e string) (int, bool) {
+	for i := 0; i < len(s); i++ {
+		if e == s[i] {
+			return i, true
+		}
+	}
+	return 0, false
+}
 func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if m.Content == "!Hello" {
@@ -53,15 +65,35 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if err != nil {
 			panic(err)
 		}
-		for i, v := range titles {
-			s.ChannelMessageSend(m.ChannelID, strconv.Itoa(i)+"."+v)
+		if len(titles) <= 9 {
+			for i, v := range titles {
+				s.ChannelMessageSend(m.ChannelID, strconv.Itoa(i+1)+"."+v)
+			}
+			s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
+		} else {
+			for i := 0; i < 9; i++ {
+				s.MessageReactionAdd(m.ChannelID, m.ID, titles[i])
+			}
+			s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
 		}
-		s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
 	}
 
 	if m.Content == "番号を選んでね！" && m.Author.ID == s.State.User.ID {
-		s.MessageReactionAdd(m.ChannelID, m.ID, "1️⃣")
-		s.MessageReactionAdd(m.ChannelID, m.ID, "2️⃣")
+		options := getNumOptions()
+		titles, err := GetAlbumTitles()
+		if err != nil {
+			panic(err)
+		}
+		if len(titles) <= 9 {
+			for i := 0; i < len(titles); i++ {
+				s.MessageReactionAdd(m.ChannelID, m.ID, options[i])
+			}
+		} else {
+			for i := 0; i < 9; i++ {
+				s.MessageReactionAdd(m.ChannelID, m.ID, options[i])
+			}
+			s.MessageReactionAdd(m.ChannelID, m.ID, "➡️")
+		}
 	}
 
 }
@@ -71,15 +103,27 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	if err != nil {
 		panic(err)
 	}
-	if r.UserID != s.State.User.ID && r.MessageReaction.Emoji.Name == "1️⃣" {
-		urls, err := GetAlbumUrls(titles[0])
-		if err != nil {
-			panic(err)
+	if r.UserID != s.State.User.ID {
+		if r.MessageReaction.Emoji.Name == "➡️" { //アルバムのページを進める操作
+
+		} else if r.MessageReaction.Emoji.Name == "⬅️" { //アルバムのページを戻す操作
+
 		}
-		for _, url := range urls {
-			s.ChannelMessageSend(r.ChannelID, url)
+		options := getNumOptions()
+		index, flag := containAtIndexNum(options, r.MessageReaction.Emoji.Name)
+		if flag {
+			urls, err := GetAlbumUrls(titles[index])
+			if err != nil {
+				panic(err)
+			}
+			for _, url := range urls {
+				s.ChannelMessageSend(r.ChannelID, url)
+			}
+			s.ChannelMessageSend(r.ChannelID, r.MessageReaction.Emoji.ID)
+			flag = false
 		}
-		s.ChannelMessageSend(r.ChannelID, r.MessageReaction.Emoji.ID)
+	} else {
+
 	}
 
 }
