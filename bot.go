@@ -72,7 +72,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
 		} else {
 			for i := 0; i < 9; i++ {
-				s.MessageReactionAdd(m.ChannelID, m.ID, titles[i])
+				s.ChannelMessageSend(m.ChannelID, strconv.Itoa(i+1)+"."+titles[i])
 			}
 			s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
 		}
