@@ -41,8 +41,8 @@ func getNumOptions() []string {
 	return arr
 }
 func containAtIndexNum(s []string, e string) (int, bool) {
-	for i := 0; i < len(s); i++ {
-		if e == s[i] {
+	for i, v := range s {
+		if e == v {
 			return i, true
 		}
 	}
