@@ -104,9 +104,9 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 		panic(err)
 	}
 	if r.UserID != s.State.User.ID {
-		if r.MessageReaction.Emoji.Name == "➡️" { //アルバムのページを進める操作
+		if r.MessageReaction.Emoji.Name == "➡️" { //アルバムのページを進める操作予定
 
-		} else if r.MessageReaction.Emoji.Name == "⬅️" { //アルバムのページを戻す操作
+		} else if r.MessageReaction.Emoji.Name == "⬅️" { //アルバムのページを戻す操作予定
 
 		}
 		options := getNumOptions()
