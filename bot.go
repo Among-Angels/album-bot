@@ -36,18 +36,37 @@ func New() {
 	<-sc
 	return
 }
+
+//getter関数を定義
 func getNumOptions() []string {
 	arr := []string{"1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"}
 	return arr
 }
-func containAtIndexNum(s []string, e string) (int, bool) {
-	for i, v := range s {
-		if e == v {
+
+//数字から数字スタンプ文字列を返す
+func getNumEmoji(i int) string {
+	if i < 1 {
+		return "❓"
+	}
+	// 対応する絵文字がない場合はその値をそのまま返す
+	if i > 9 {
+		return strconv.Itoa(i)
+	}
+	arr := []string{"1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"}
+	return arr[i-1]
+}
+
+//数字スタンプ文字列から数値とbool値を返す
+func getNumFromNumEmoji(s string) (int, bool) {
+	arr := getNumOptions()
+	for i := range s {
+		if s == arr[i] {
 			return i, true
 		}
 	}
 	return 0, false
 }
+
 func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if m.Content == "!Hello" {
@@ -79,18 +98,17 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if m.Content == "番号を選んでね！" && m.Author.ID == s.State.User.ID {
-		options := getNumOptions()
 		titles, err := GetAlbumTitles()
 		if err != nil {
 			panic(err)
 		}
 		if len(titles) <= 9 {
 			for i := 0; i < len(titles); i++ {
-				s.MessageReactionAdd(m.ChannelID, m.ID, options[i])
+				s.MessageReactionAdd(m.ChannelID, m.ID, getNumEmoji(i+1))
 			}
 		} else {
 			for i := 0; i < 9; i++ {
-				s.MessageReactionAdd(m.ChannelID, m.ID, options[i])
+				s.MessageReactionAdd(m.ChannelID, m.ID, getNumEmoji(i+1))
 			}
 			s.MessageReactionAdd(m.ChannelID, m.ID, "➡️")
 		}
@@ -109,8 +127,8 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 		} else if r.MessageReaction.Emoji.Name == "⬅️" { //アルバムのページを戻す操作予定
 
 		}
-		options := getNumOptions()
-		index, flag := containAtIndexNum(options, r.MessageReaction.Emoji.Name)
+
+		index, flag := getNumFromNumEmoji(r.MessageReaction.Emoji.Name)
 		if flag {
 			urls, err := GetAlbumUrls(titles[index])
 			if err != nil {
