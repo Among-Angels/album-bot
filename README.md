@@ -4,8 +4,8 @@
 
 ### 事前準備
 
-.envをプロジェクト直下(albumbot/)に配置する。.envの書きぶりは以下参考リンク
-https://discordapp.com/channels/252122237761486849/788388972825018368/891657884570619934
+1. .envをプロジェクト直下(albumbot/)に配置し、[リンク先](https://discordapp.com/channels/252122237761486849/788388972825018368/891657884570619934)のように書く
+1. [AWSの認証情報を書く](https://docs.aws.amazon.com/ja_jp/cli/latest/userguide/cli-configure-files.html)
 
 ### 起動コマンド
 
