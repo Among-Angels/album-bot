@@ -52,7 +52,7 @@ func getNumEmoji(i int) string {
 	if i > 9 {
 		return strconv.Itoa(i)
 	}
-	arr := []string{"1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"}
+	arr := getNumOptions()
 	return arr[i-1]
 }
 
