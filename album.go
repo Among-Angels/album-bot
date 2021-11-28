@@ -138,13 +138,22 @@ func PostAlbumUrl(title, url string) error {
 
 // CreateAlbumは新しいアルバムをDynamoDB上に作成します
 func CreateAlbum(title string) error {
+	titles, err := GetAlbumTitles()
+	if err != nil {
+		return err
+	}
+	for _, t := range titles {
+		if t == title {
+			return fmt.Errorf("すでに存在するアルバム名です。")
+		}
+	}
 	input := &dynamodb.PutItemInput{
 		Item: map[string]types.AttributeValue{
 			"Title": &types.AttributeValueMemberS{Value: title},
 		},
 		TableName: table,
 	}
-	_, err := dbClient.PutItem(context.TODO(), input)
+	_, err = dbClient.PutItem(context.TODO(), input)
 	if err != nil {
 		return err
 	}
