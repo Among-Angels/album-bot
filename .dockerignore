@@ -1,0 +1,5 @@
+*_test.go
+.vscode
+.DS_Store
+.env
+main

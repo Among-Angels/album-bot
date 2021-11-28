@@ -1,0 +1,84 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: AlbumBot-ECS
+Resources:
+  ECSSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      VpcId: !ImportValue AlbumBotVpcId
+      GroupDescription: "-"
+  ECSCluster:
+    Type: "AWS::ECS::Cluster"
+  ECSLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      RetentionInDays: 7
+  ECSTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "AlbumBot-ECSTaskExecutionRole"
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ""
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+        # - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+  ECSTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "AlbumBot-ECSTaskRole"
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ""
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+  ECSTaskDefinition:
+    Type: "AWS::ECS::TaskDefinition"
+    Properties:
+      Cpu: 256
+      ExecutionRoleArn: !GetAtt ["ECSTaskExecutionRole","Arn"]
+      TaskRoleArn: !GetAtt ["ECSTaskRole","Arn"]
+      Memory: 512
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ContainerDefinitions:
+        - Name: "albumbot"
+          Image: !Sub
+            - ${ImageUri}:latest
+            - { ImageUri: !ImportValue AlbumBotRepositoryUri }
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref ECSLogGroup
+              awslogs-region: !Ref "AWS::Region"
+              awslogs-stream-prefix: "albumbot"
+          MemoryReservation: 128
+          Secrets:
+            - Name: "DISCORD_TOKEN"
+              ValueFrom: "DISCORD_TOKEN"
+  ECSService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref ECSCluster
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+       AwsvpcConfiguration:
+           AssignPublicIp: ENABLED
+           SecurityGroups:
+             - !Ref ECSSecurityGroup
+           Subnets:
+             - !ImportValue AlbumBotSubnetId
+      TaskDefinition: !Ref ECSTaskDefinition
