@@ -1,0 +1,10 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: AlbumBot-ECR
+Resources:
+  ECR:
+    Type: "AWS::ECR::Repository"
+Outputs:
+  ECR:
+    Value: !GetAtt ["ECR","RepositoryUri"]
+    Export:
+      Name: "AlbumBotRepositoryUri"
