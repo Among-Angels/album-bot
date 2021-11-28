@@ -16,3 +16,6 @@
 
 # ClientIDとToken用
 *.env
+
+# .DS_Store
+.DS_Store
