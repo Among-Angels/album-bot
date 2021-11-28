@@ -114,7 +114,7 @@ func GetAlbumPage(title string, start, count int) (urls []string, e error) {
 }
 
 // PostAlbumUrlは与えられたアルバム名のUrl配列に与えられたUrlを追加します
-func PostAlbumUrl(title, url string) (e error) {
+func PostAlbumUrl(title, url string) error {
 	input := &dynamodb.UpdateItemInput{
 		Key: map[string]types.AttributeValue{
 			"Title": &types.AttributeValueMemberS{Value: title},
@@ -130,6 +130,30 @@ func PostAlbumUrl(title, url string) (e error) {
 		TableName:        table,
 	}
 	_, err := dbClient.UpdateItem(context.TODO(), input)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// CreateAlbumは新しいアルバムをDynamoDB上に作成します
+func CreateAlbum(title string) error {
+	titles, err := GetAlbumTitles()
+	if err != nil {
+		return err
+	}
+	for _, t := range titles {
+		if t == title {
+			return fmt.Errorf("すでに存在するアルバム名です。")
+		}
+	}
+	input := &dynamodb.PutItemInput{
+		Item: map[string]types.AttributeValue{
+			"Title": &types.AttributeValueMemberS{Value: title},
+		},
+		TableName: table,
+	}
+	_, err = dbClient.PutItem(context.TODO(), input)
 	if err != nil {
 		return err
 	}
