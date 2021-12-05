@@ -98,7 +98,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 	}
 	if strings.Contains(m.Content, "!createalbum") {
-		arr1 := strings.Split(m.Content, "")
+		arr1 := strings.Split(m.Content, " ")
 		if len(arr1) == 2 && arr1[0] == "!createalbum" {
 			CreateAlbum(arr1[1])
 		} else {
