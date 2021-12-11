@@ -37,6 +37,14 @@ func New() {
 	<-sc
 	return
 }
+func contains(s []string, e string) bool {
+	for _, v := range s {
+		if e == v {
+			return true
+		}
+	}
+	return false
+}
 
 //getter関数を定義
 func getNumOptions() []string {
@@ -97,12 +105,34 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
 		}
 	}
+
 	if strings.HasPrefix(m.Content, "!albumcreate") {
-		arr1 := strings.Split(m.Content, "")
+		arr1 := strings.Split(m.Content, " ")
 		if len(arr1) == 2 && arr1[0] == "!albumcreate" {
 			CreateAlbum(arr1[1])
 		} else {
-			s.ChannelMessageSend(m.ChannelID, "!albumcreate titlename の形で記入してね！")
+			s.ChannelMessageSend(m.ChannelID, "→ !albumcreate titlename の形で記入してね！")
+		}
+	}
+
+	if strings.HasPrefix(m.Content, "!albumadd") {
+		arr2 := strings.Split(m.Content, " ")
+		titles, err := GetAlbumTitles()
+		if err != nil {
+			panic(err)
+		}
+		if len(arr2) == 2 && arr2[0] == "!albumadd" && contains(titles, arr2[1]) {
+			if len(m.Attachments) > 0 {
+				for _, attach := range m.Attachments {
+					if (strings.HasSuffix(attach.URL, ".png")) || (strings.HasSuffix(attach.URL, ".jpg")) {
+						PostAlbumUrl(arr2[1], attach.URL)
+					} else {
+						s.ChannelMessageSend(m.ChannelID, "→ 画像ファイルをアップロードしてね！")
+					}
+				}
+			}
+		} else {
+			s.ChannelMessageSend(m.ChannelID, "→ !albumadd actual_albumname の形でファイルをアップロードしてね！")
 		}
 	}
 
@@ -122,9 +152,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			s.MessageReactionAdd(m.ChannelID, m.ID, "➡️")
 		}
 	}
-
 }
-
 func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	titles, err := GetAlbumTitles()
 	if err != nil {
