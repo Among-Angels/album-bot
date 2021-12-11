@@ -97,9 +97,9 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
 		}
 	}
-	if strings.Contains(m.Content, "!createalbum") {
-		arr1 := strings.Split(m.Content, " ")
-		if len(arr1) == 2 && arr1[0] == "!createalbum" {
+	if strings.HasPrefix(m.Content, "!albumcreate") {
+		arr1 := strings.Split(m.Content, "")
+		if len(arr1) == 2 && arr1[0] == "!albumcreate" {
 			CreateAlbum(arr1[1])
 		} else {
 			s.ChannelMessageSend(m.ChannelID, "!albumcreate titlename の形で記入してね！")
