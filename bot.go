@@ -37,6 +37,20 @@ func New() {
 	<-sc
 	return
 }
+func contains(s []string, e string) bool {
+	for _, v := range s {
+		if e == v {
+			return true
+		}
+	}
+	return false
+}
+
+func isUrlImage(url string) bool {
+	exts := []string{"png", "jpg", "jpeg", "gif"}
+	parts := strings.Split(url, ".")
+	return contains(exts, parts[len(parts)-1])
+}
 
 //getter関数を定義
 func getNumOptions() []string {
@@ -68,6 +82,39 @@ func getNumFromNumEmoji(s string) (int, bool) {
 	return 0, false
 }
 
+func albumadd(m *discordgo.MessageCreate) error {
+	contents := strings.Split(m.Content, " ")
+	if len(contents) != 2 {
+		return fmt.Errorf("→ !albumadd actual_albumname の形でファイルをアップロードしてね！")
+	}
+	title := contents[1]
+	titles, err := GetAlbumTitles()
+	if err != nil {
+		return err
+	}
+	if !contains(titles, title) {
+		return fmt.Errorf("%sというアルバムはなかったよ。!albumcreateコマンドで作れるよ！", title)
+	}
+	if len(m.Attachments) == 0 {
+		return fmt.Errorf("画像が一枚も添付されてないよ。")
+	}
+	invalidAttaches := []string{}
+	for _, attach := range m.Attachments {
+		if isUrlImage(attach.URL) {
+			err := PostAlbumUrl(title, attach.URL)
+			if err != nil {
+				return err
+			}
+		} else {
+			invalidAttaches = append(invalidAttaches, attach.Filename)
+		}
+	}
+	if len(invalidAttaches) > 0 {
+		return fmt.Errorf("以下のファイルは画像じゃないから無視したよ：\n%s", strings.Join(invalidAttaches, "\n"))
+	}
+	return nil
+}
+
 func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if m.Content == "!Hello" {
@@ -97,12 +144,20 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
 		}
 	}
+
 	if strings.HasPrefix(m.Content, "!albumcreate") {
-		arr1 := strings.Split(m.Content, "")
+		arr1 := strings.Split(m.Content, " ")
 		if len(arr1) == 2 && arr1[0] == "!albumcreate" {
 			CreateAlbum(arr1[1])
 		} else {
-			s.ChannelMessageSend(m.ChannelID, "!albumcreate titlename の形で記入してね！")
+			s.ChannelMessageSend(m.ChannelID, "→ !albumcreate titlename の形で記入してね！")
+		}
+	}
+
+	if strings.HasPrefix(m.Content, "!albumadd") {
+		err := albumadd(m)
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, err.Error())
 		}
 	}
 
@@ -122,9 +177,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			s.MessageReactionAdd(m.ChannelID, m.ID, "➡️")
 		}
 	}
-
 }
-
 func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	titles, err := GetAlbumTitles()
 	if err != nil {
