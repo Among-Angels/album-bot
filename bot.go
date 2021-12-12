@@ -35,7 +35,6 @@ func New() {
 	fmt.Println("booted!!!")
 
 	<-sc
-	return
 }
 
 //getter関数を定義
