@@ -117,7 +117,7 @@ func albumadd(m *discordgo.MessageCreate) error {
 func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if m.Content == "!Hello" {
-		s.ChannelMessageSend(m.ChannelID, "Hello")
+		s.ChannelMessageSend(m.ChannelID, "Hellllllllllo")
 	}
 
 	if m.Content == "!taisho" {
