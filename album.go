@@ -1,13 +1,28 @@
 package albumbot
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
-	"io/ioutil"
-	"os"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-const dataPath = "dataSet.json"
+var table = aws.String("Albums")
+var dbClient *dynamodb.Client
+
+func init() {
+	cfg, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		panic("unable to load SDK config, " + err.Error())
+	}
+
+	// Create an Amazon DynamoDB client.
+	dbClient = dynamodb.NewFromConfig(cfg)
+}
 
 // Albumはタイトルとそれに紐付けられた画像URLの集合です。
 type Album struct {
@@ -20,22 +35,51 @@ type Albums struct {
 	Albums []Album
 }
 
+func getAlbumTitles(c context.Context, client dynamodb.ScanAPIClient) (titles []string, e error) {
+	key := "Title"
+	params := &dynamodb.ScanInput{
+		TableName:            table,
+		ProjectionExpression: &key,
+	}
+	resp, err := client.Scan(c, params)
+	if err != nil {
+		fmt.Println("Got an error scanning the table:")
+		fmt.Println(err.Error())
+		return
+	}
+	albums := []Album{}
+	err = attributevalue.UnmarshalListOfMaps(resp.Items, &albums)
+	if err != nil {
+		panic(fmt.Sprintf("failed to unmarshal Dynamodb Scan Items, %v", err))
+	}
+	for _, al := range albums {
+		titles = append(titles, al.Title)
+	}
+	return titles, nil
+}
+
+// GetAlbumTitlesはアルバム名のリストを返します。
+func GetAlbumTitles() (titles []string, e error) {
+	return getAlbumTitles(context.TODO(), dbClient)
+}
+
 // GetAlbumUrlsは与えられたアルバム名の画像のURLのリストを返します。
 func GetAlbumUrls(title string) (urls []string, e error) {
-	raw, err := ioutil.ReadFile(dataPath)
+	out, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
+		TableName: table,
+		Key: map[string]types.AttributeValue{
+			"Title": &types.AttributeValueMemberS{Value: title},
+		},
+	})
 	if err != nil {
-		return nil, err
+		return nil, e
 	}
-
-	var albums Albums
-	json.Unmarshal(raw, &albums)
-	for _, a := range albums.Albums {
-		if a.Title == title {
-			return a.Urls, nil
-		}
+	var album Album
+	err = attributevalue.UnmarshalMap(out.Item, &album)
+	if err != nil {
+		return nil, e
 	}
-	e = fmt.Errorf("アルバム%sが見つかりませんでした。", title)
-	return nil, e
+	return album.Urls, e
 }
 
 // GetAlbumPageは与えられたアルバム名と開始index,数量からURLのリストを返します
@@ -70,30 +114,48 @@ func GetAlbumPage(title string, start, count int) (urls []string, e error) {
 }
 
 // PostAlbumUrlは与えられたアルバム名のUrl配列に与えられたUrlを追加します
-// ファイル全部読んで全部上書きする脳筋処理なので改良の余地ありです。。
-func PostAlbumUrl(albumTitle, url string) (e error) {
-	raw, err := ioutil.ReadFile(dataPath)
+func PostAlbumUrl(title, url string) error {
+	input := &dynamodb.UpdateItemInput{
+		Key: map[string]types.AttributeValue{
+			"Title": &types.AttributeValueMemberS{Value: title},
+		},
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":url": &types.AttributeValueMemberL{
+				Value: []types.AttributeValue{
+					&types.AttributeValueMemberS{Value: url},
+				},
+			},
+		},
+		UpdateExpression: aws.String("SET urls = list_append(urls, :url)"),
+		TableName:        table,
+	}
+	_, err := dbClient.UpdateItem(context.TODO(), input)
 	if err != nil {
 		return err
 	}
+	return nil
+}
 
-	var albums Albums
-	json.Unmarshal(raw, &albums)
-	for index, album := range albums.Albums {
-		if album.Title != albumTitle {
-			continue
-		}
-		albums.Albums[index].Urls = append(albums.Albums[index].Urls, url)
-		marshaled, err := json.Marshal(albums)
-		if err != nil {
-			return err
-		}
-		writeError := ioutil.WriteFile(dataPath, marshaled, os.ModePerm)
-		if writeError != nil {
-			return writeError
-		}
-		return
+// CreateAlbumは新しいアルバムをDynamoDB上に作成します
+func CreateAlbum(title string) error {
+	titles, err := GetAlbumTitles()
+	if err != nil {
+		return err
 	}
-	e = fmt.Errorf("アルバム%sが見つかりませんでした。", albumTitle)
-	return e
+	for _, t := range titles {
+		if t == title {
+			return fmt.Errorf("すでに存在するアルバム名です。")
+		}
+	}
+	input := &dynamodb.PutItemInput{
+		Item: map[string]types.AttributeValue{
+			"Title": &types.AttributeValueMemberS{Value: title},
+		},
+		TableName: table,
+	}
+	_, err = dbClient.PutItem(context.TODO(), input)
+	if err != nil {
+		return err
+	}
+	return nil
 }
