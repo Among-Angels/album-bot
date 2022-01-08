@@ -1,0 +1,7 @@
+builds:
+-
+  main: ./cmd/albumbot/main.go
+  goos:
+  - linux
+  - darwin
+  - windows
