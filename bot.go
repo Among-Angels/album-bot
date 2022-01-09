@@ -181,29 +181,36 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	titles, err := GetAlbumTitles()
 	if err != nil {
 		panic(err)
-	}
-	if r.UserID != s.State.User.ID {
-		if r.MessageReaction.Emoji.Name == "➡️" { //アルバムのページを進める操作予定
-
-		} else if r.MessageReaction.Emoji.Name == "⬅️" { //アルバムのページを戻す操作予定
-
-		}
-
-		index, _ := getNumFromNumEmoji(r.MessageReaction.Emoji.Name)
-
-		urls, err := GetAlbumUrls(titles[index])
+	} else {
+		message, err := s.ChannelMessage(r.ChannelID, r.MessageID)
 		if err != nil {
 			panic(err)
-		}
-		s.ChannelMessageSend(r.ChannelID, titles[index])
-		for _, url := range urls {
-			s.ChannelMessageSend(r.ChannelID, url)
-		}
-		s.ChannelMessageDelete(r.ChannelID, r.MessageID)
-	} else {
+		} else {
+			if r.UserID != s.State.User.ID && message.Content == "番号を選んでね！" && message.Author.ID == s.State.User.ID {
+				if r.MessageReaction.Emoji.Name == "➡️" { //アルバムのページを進める操作予定
 
+				} else if r.MessageReaction.Emoji.Name == "⬅️" { //アルバムのページを戻す操作予定
+
+				}
+
+				index, NumEmojiFlag := getNumFromNumEmoji(r.MessageReaction.Emoji.Name)
+				if NumEmojiFlag {
+
+					urls, err := GetAlbumUrls(titles[index])
+					if err != nil {
+						panic(err)
+					}
+					s.ChannelMessageSend(r.ChannelID, titles[index])
+					for _, url := range urls {
+						s.ChannelMessageSend(r.ChannelID, url)
+					}
+					s.ChannelMessageDelete(r.ChannelID, r.MessageID)
+				}
+			} else {
+
+			}
+		}
 	}
-
 }
 
 func loadToken() string {
