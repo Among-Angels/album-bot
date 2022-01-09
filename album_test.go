@@ -68,6 +68,7 @@ func TestGetAlbumUrls(t *testing.T) {
 	wants := []string{
 		"https://test1.png",
 		"https://test2.png",
+		"https://test3.png",
 	}
 	type args struct {
 		title string
@@ -77,9 +78,9 @@ func TestGetAlbumUrls(t *testing.T) {
 		args args
 		want []string
 	}{{
-		name: "test",
+		name: "_test",
 		args: args{
-			title: "test",
+			title: "_test",
 		},
 		want: wants,
 	}}
@@ -98,13 +99,12 @@ func TestGetAlbumUrls(t *testing.T) {
 
 func TestGetAlbumPage(t *testing.T) {
 	normalWants := []string{
-		"https://cdn.discordapp.com/attachments/723903982745157723/782582360688033842/image0.jpg",
-		"https://cdn.discordapp.com/attachments/723903982745157723/784664833860960266/PXL_20201128_013520140.jpg",
-		"https://cdn.discordapp.com/attachments/723903982745157723/788395055843901450/image0.jpg",
+		"https://test1.png",
+		"https://test2.png",
 	}
 	overCountWants := []string{
-		"https://cdn.discordapp.com/attachments/723903982745157723/788395055843901450/image0.jpg",
-		"https://cdn.discordapp.com/attachments/723903982745157723/853546288527441940/unknown.png",
+		"https://test2.png",
+		"https://test3.png",
 	}
 	type args struct {
 		title string
@@ -119,17 +119,17 @@ func TestGetAlbumPage(t *testing.T) {
 		{
 			name: "normal case",
 			args: args{
-				title: "taisho",
-				start: 1,
-				count: 3,
+				title: "_test",
+				start: 0,
+				count: 2,
 			},
 			want: normalWants,
 		},
 		{
 			name: "over count case",
 			args: args{
-				title: "taisho",
-				start: 3,
+				title: "_test",
+				start: 1,
 				count: 9999,
 			},
 			want: overCountWants,
