@@ -186,6 +186,7 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 		if err != nil {
 			panic(err)
 		} else {
+			//botが投稿した"番号を選んでね！"のメッセージのみ処理
 			if r.UserID != s.State.User.ID && message.Content == "番号を選んでね！" && message.Author.ID == s.State.User.ID {
 				if r.MessageReaction.Emoji.Name == "➡️" { //アルバムのページを進める操作予定
 
