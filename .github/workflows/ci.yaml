@@ -1,4 +1,4 @@
-name: ci
+name: Test&Format
 
 on:
   pull_request:
@@ -22,7 +22,7 @@ jobs:
       run: go fmt ./...
 
     - name: Commit
-        uses: stefanzweifel/git-auto-commit-action@v4.13.1
-        with:
-          commit_message: "PR作成時の自動Commit"
-          branch: ${{ github.head_ref }}
+      uses: stefanzweifel/git-auto-commit-action@v4.13.1
+      with:
+        commit_message: "PR作成時の自動Commit"
+        branch: ${{ github.head_ref }}
