@@ -133,12 +133,12 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 		if len(titles) <= 10 {
 			for i, v := range titles {
-				s.ChannelMessageSend(m.ChannelID, strconv.Itoa(i+1)+"."+v)
+				s.ChannelMessageSend(m.ChannelID, getNumEmoji(i+1)+" "+v)
 			}
 			s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
 		} else {
 			for i := 0; i < 10; i++ {
-				s.ChannelMessageSend(m.ChannelID, strconv.Itoa(i+1)+"."+titles[i])
+				s.ChannelMessageSend(m.ChannelID, getNumEmoji(i+1)+" "+titles[i])
 			}
 			s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
 		}
@@ -181,37 +181,37 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	titles, err := GetAlbumTitles()
 	if err != nil {
 		panic(err)
-	} else {
-		message, err := s.ChannelMessage(r.ChannelID, r.MessageID)
-		if err != nil {
-			panic(err)
-		} else {
-			//botが投稿した"番号を選んでね！"のメッセージのみ処理
-			if r.UserID != s.State.User.ID && message.Content == "番号を選んでね！" && message.Author.ID == s.State.User.ID {
-				if r.MessageReaction.Emoji.Name == "➡️" { //アルバムのページを進める操作予定
-
-				} else if r.MessageReaction.Emoji.Name == "⬅️" { //アルバムのページを戻す操作予定
-
-				}
-
-				index, NumEmojiFlag := getNumFromNumEmoji(r.MessageReaction.Emoji.Name)
-				if NumEmojiFlag {
-
-					urls, err := GetAlbumUrls(titles[index])
-					if err != nil {
-						panic(err)
-					}
-					s.ChannelMessageSend(r.ChannelID, titles[index])
-					for _, url := range urls {
-						s.ChannelMessageSend(r.ChannelID, url)
-					}
-					s.ChannelMessageDelete(r.ChannelID, r.MessageID)
-				}
-			} else {
-
-			}
-		}
 	}
+	message, err := s.ChannelMessage(r.ChannelID, r.MessageID)
+	if err != nil {
+		panic(err)
+	}
+	//botが投稿した"番号を選んでね！"のメッセージのみ処理
+	if r.UserID != s.State.User.ID && message.Content == "番号を選んでね！" && message.Author.ID == s.State.User.ID {
+		if r.MessageReaction.Emoji.Name == "➡️" { //アルバムのページを進める操作予定
+
+		} else if r.MessageReaction.Emoji.Name == "⬅️" { //アルバムのページを戻す操作予定
+
+		}
+
+		index, NumEmojiFlag := getNumFromNumEmoji(r.MessageReaction.Emoji.Name)
+		if NumEmojiFlag {
+			s.ChannelMessageDelete(r.ChannelID, r.MessageID)
+
+			urls, err := GetAlbumUrls(titles[index])
+			if err != nil {
+				panic(err)
+			}
+			s.ChannelMessageSend(r.ChannelID, "> "+titles[index])
+			for _, url := range urls {
+				s.ChannelMessageSend(r.ChannelID, url)
+			}
+
+		}
+	} else {
+
+	}
+
 }
 
 func loadToken() string {
