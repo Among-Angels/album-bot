@@ -25,11 +25,10 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
 
-    - name: Set Table Name
-      run: export TABLE_NAME=Albums
-
     - name: Test
-      run: go test -v ./album.go ./album_test.go
+      run: |
+        export TABLE_NAME=Albums
+        go test -v ./album.go ./album_test.go
 
     - name: Format
       run: go fmt ./...
