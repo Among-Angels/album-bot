@@ -113,13 +113,23 @@ func albumadd(m *discordgo.MessageCreate) error {
 	}
 	return nil
 }
-
+func checkclhelp() string {
+	return `・登録されているアルバムから見たいアルバムを選択する
+!album 
+・アルバムを作成する
+!albumcreate albumtitle
+・アルバムに写真を追加する（以下のコマンドと同時に写真を添付）
+!albumadd actual_albumname
+	`
+}
 func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if m.Content == "!Hello" {
 		s.ChannelMessageSend(m.ChannelID, "Hello")
 	}
-
+	if (m.Content == "!albumbot -h") || (m.Content == "!albumbot -help") || (m.Content == "!albumbot help") {
+		s.ChannelMessageSend(m.ChannelID, checkclhelp())
+	}
 	if m.Content == "!taisho" {
 		urls, e := GetAlbumUrls("taisho")
 		fmt.Println(e)
