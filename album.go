@@ -150,6 +150,7 @@ func CreateAlbum(title string) error {
 	input := &dynamodb.PutItemInput{
 		Item: map[string]types.AttributeValue{
 			"Title": &types.AttributeValueMemberS{Value: title},
+			"urls":  &types.AttributeValueMemberL{},
 		},
 		TableName: table,
 	}
