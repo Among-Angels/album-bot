@@ -3,6 +3,7 @@ package albumbot
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -11,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-var table = aws.String("Albums")
+var table = aws.String(os.Getenv("TABLE_NAME"))
 var dbClient *dynamodb.Client
 
 func init() {

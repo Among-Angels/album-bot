@@ -26,7 +26,9 @@ jobs:
         aws-region: ${{ env.AWS_REGION }}
 
     - name: Test
-      run: go test -v ./album.go ./album_test.go
+      run: |
+        export TABLE_NAME=Albums
+        go test -v ./album.go ./album_test.go
 
     - name: Format
       run: go fmt ./...

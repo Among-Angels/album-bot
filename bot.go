@@ -9,11 +9,10 @@ import (
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/joho/godotenv"
 )
 
 func New() {
-	discordToken := "Bot " + loadToken()
+	discordToken := "Bot " + os.Getenv("DISCORD_TOKEN")
 
 	session, err := discordgo.New()
 	if err != nil {
@@ -222,16 +221,4 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 			}
 		}
 	}
-}
-
-func loadToken() string {
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Printf("cannot load envrionments: %v", err)
-	}
-	token := os.Getenv("DISCORD_TOKEN")
-	if token == "" {
-		panic("no discord token exists.")
-	}
-	return token
 }
