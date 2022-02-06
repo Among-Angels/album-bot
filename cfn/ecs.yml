@@ -65,6 +65,9 @@ Resources:
               awslogs-region: !Ref "AWS::Region"
               awslogs-stream-prefix: "albumbot"
           MemoryReservation: 128
+          Environment:
+            - Name: "TABLE_NAME"
+              Value: "Albums"
           Secrets:
             - Name: "DISCORD_TOKEN"
               ValueFrom: "DISCORD_TOKEN"
