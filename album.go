@@ -12,7 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-var table = aws.String(os.Getenv("TABLE_NAME"))
 var dbClient *dynamodb.Client
 
 func init() {
@@ -37,6 +36,7 @@ type Albums struct {
 }
 
 func getAlbumTitles(c context.Context, client dynamodb.ScanAPIClient) (titles []string, e error) {
+	var table = aws.String(os.Getenv("TABLE_NAME"))
 	key := "Title"
 	params := &dynamodb.ScanInput{
 		TableName:            table,
@@ -66,6 +66,7 @@ func GetAlbumTitles() (titles []string, e error) {
 
 // GetAlbumUrlsは与えられたアルバム名の画像のURLのリストを返します。
 func GetAlbumUrls(title string) (urls []string, e error) {
+	var table = aws.String(os.Getenv("TABLE_NAME"))
 	out, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
 		TableName: table,
 		Key: map[string]types.AttributeValue{
@@ -116,6 +117,7 @@ func GetAlbumPage(title string, start, count int) (urls []string, e error) {
 
 // PostAlbumUrlは与えられたアルバム名のUrl配列に与えられたUrlを追加します
 func PostAlbumUrl(title, url string) error {
+	var table = aws.String(os.Getenv("TABLE_NAME"))
 	input := &dynamodb.UpdateItemInput{
 		Key: map[string]types.AttributeValue{
 			"Title": &types.AttributeValueMemberS{Value: title},
@@ -139,6 +141,7 @@ func PostAlbumUrl(title, url string) error {
 
 // CreateAlbumは新しいアルバムをDynamoDB上に作成します
 func CreateAlbum(title string) error {
+	var table = aws.String(os.Getenv("TABLE_NAME"))
 	titles, err := GetAlbumTitles()
 	if err != nil {
 		return err
