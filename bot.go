@@ -80,7 +80,7 @@ func getNumFromNumEmoji(s string) (int, bool) {
 	return 0, false
 }
 
-func albumadd(m *discordgo.MessageCreate) error {
+func albumadd(s *discordgo.Session, m *discordgo.MessageCreate) error {
 	contents := strings.Split(m.Content, " ")
 	if len(contents) != 2 {
 		return fmt.Errorf("→ !albumadd actual_albumname の形でファイルをアップロードしてね！")
@@ -103,10 +103,12 @@ func albumadd(m *discordgo.MessageCreate) error {
 			if err != nil {
 				return err
 			}
+			s.ChannelMessageSend(m.ChannelID, attach.URL+" を"+title+"アルバムに追加したよ！")
 		} else {
 			invalidAttaches = append(invalidAttaches, attach.Filename)
 		}
 	}
+
 	if len(invalidAttaches) > 0 {
 		return fmt.Errorf("以下のファイルは画像じゃないから無視したよ：\n%s", strings.Join(invalidAttaches, "\n"))
 	}
@@ -156,14 +158,18 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if strings.HasPrefix(m.Content, "!albumcreate") {
 		arr1 := strings.Split(m.Content, " ")
 		if len(arr1) == 2 && arr1[0] == "!albumcreate" {
-			CreateAlbum(arr1[1])
+			err := CreateAlbum(arr1[1])
+			if err != nil {
+				return err
+			}
+			s.ChannelMessageSend(m.ChannelID, arr1[1]+"というアルバムを作成したよ！")
 		} else {
 			s.ChannelMessageSend(m.ChannelID, "→ !albumcreate titlename の形で記入してね！")
 		}
 	}
 
 	if strings.HasPrefix(m.Content, "!albumadd") {
-		err := albumadd(m)
+		err := albumadd(s, m)
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, err.Error())
 		}
