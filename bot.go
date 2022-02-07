@@ -158,7 +158,10 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if strings.HasPrefix(m.Content, "!albumcreate") {
 		arr1 := strings.Split(m.Content, " ")
 		if len(arr1) == 2 && arr1[0] == "!albumcreate" {
-			CreateAlbum(arr1[1])
+			err := CreateAlbum(arr1[1])
+			if err != nil {
+				return err
+			}
 			s.ChannelMessageSend(m.ChannelID, arr1[1]+"というアルバムを作成したよ！")
 		} else {
 			s.ChannelMessageSend(m.ChannelID, "→ !albumcreate titlename の形で記入してね！")
