@@ -100,10 +100,10 @@ func albumadd(s *discordgo.Session, m *discordgo.MessageCreate) error {
 	for _, attach := range m.Attachments {
 		if isUrlImage(attach.URL) {
 			err := PostAlbumUrl(title, attach.URL)
-			s.ChannelMessageSend(m.ChannelID, attach.URL+" を"+title+"アルバムに追加したよ！")
 			if err != nil {
 				return err
 			}
+			s.ChannelMessageSend(m.ChannelID, attach.URL+" を"+title+"アルバムに追加したよ！")
 		} else {
 			invalidAttaches = append(invalidAttaches, attach.Filename)
 		}
