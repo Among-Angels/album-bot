@@ -72,7 +72,7 @@ func getNumEmoji(i int) string {
 //数字スタンプ文字列から数値とbool値を返す
 func getNumFromNumEmoji(s string) (int, bool) {
 	arr := getNumOptions()
-	for i := range s {
+	for i := range arr {
 		if s == arr[i] {
 			return i, true
 		}
@@ -160,7 +160,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if len(arr1) == 2 && arr1[0] == "!albumcreate" {
 			err := CreateAlbum(arr1[1])
 			if err != nil {
-				return err
+				panic(err)
 			}
 			s.ChannelMessageSend(m.ChannelID, arr1[1]+"というアルバムを作成したよ！")
 		} else {
