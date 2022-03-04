@@ -74,7 +74,7 @@ func getNumEmoji(i int) string {
 //数字スタンプ文字列から数値とbool値を返す
 func getNumFromNumEmoji(s string) (int, bool) {
 	arr := getNumOptions()
-	for i := range s {
+	for i := range arr {
 		if s == arr[i] {
 			return i, true
 		}
@@ -151,7 +151,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Content == callCommand {
 		titles, err := GetAlbumTitles()
 		if err != nil {
-			panic(err)
+			s.ChannelMessageSend(m.ChannelID, err.Error())
 		}
 		if len(titles) <= 10 {
 			for i, v := range titles {
@@ -170,7 +170,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if len(command) == 3 {
 			err := CreateAlbum(command[2])
 			if err != nil {
-				return err
+				s.ChannelMessageSend(m.ChannelID, err.Error())
 			}
 			s.ChannelMessageSend(m.ChannelID, command[2]+"というアルバムを作成したよ！")
 		} else {
@@ -188,7 +188,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Content == "番号を選んでね！" && m.Author.ID == s.State.User.ID {
 		titles, err := GetAlbumTitles()
 		if err != nil {
-			panic(err)
+			s.ChannelMessageSend(m.ChannelID, err.Error())
 		}
 		if len(titles) <= 10 {
 			for i := 0; i < len(titles); i++ {
@@ -205,11 +205,11 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	titles, err := GetAlbumTitles()
 	if err != nil {
-		panic(err)
+		s.ChannelMessageSend(r.ChannelID, err.Error())
 	}
 	message, err := s.ChannelMessage(r.ChannelID, r.MessageID)
 	if err != nil {
-		panic(err)
+		s.ChannelMessageSend(r.ChannelID, err.Error())
 	}
 	//botが投稿した"番号を選んでね！"のメッセージのみ処理
 	if r.UserID != s.State.User.ID && message.Content == "番号を選んでね！" && message.Author.ID == s.State.User.ID {
@@ -225,7 +225,7 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 
 			urls, err := GetAlbumUrls(titles[index])
 			if err != nil {
-				panic(err)
+				s.ChannelMessageSend(r.ChannelID, err.Error())
 			}
 			s.ChannelMessageSend(r.ChannelID, "> "+titles[index])
 			for _, url := range urls {
