@@ -11,7 +11,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-var callCommand = "!album"
+//自分のbotを使用する場合はココを変更
+var callCommand = "!a"
 
 func New() {
 	discordToken := "Bot " + os.Getenv("DISCORD_TOKEN")
@@ -118,13 +119,10 @@ func albumadd(s *discordgo.Session, m *discordgo.MessageCreate) error {
 }
 
 func checkclhelp() string {
-	return `・登録されているアルバムから見たいアルバムを選択する
-!album 
-・アルバムを作成する
-!albumcreate albumtitle
-・アルバムに写真を追加する（以下のコマンドと同時に写真を添付）
-!albumadd actual_albumname
-	`
+	return callCommand + "\n・登録されているアルバムから見たいアルバムを選択する\n" +
+		callCommand + " create albumtitle\n・アルバムを作成する\n" +
+		callCommand + " add actual_albumname\n・アルバムに写真を追加する（以下のコマンドと同時に写真を添付）\n"
+
 }
 
 func commandSplit(str string) []string {
@@ -166,7 +164,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 	}
 
-	if command[0] == callCommand && command[1] == "create" {
+	if command[0] == callCommand && len(command) > 2 && command[1] == "create" {
 		if len(command) == 3 {
 			err := CreateAlbum(command[2])
 			if err != nil {
@@ -178,7 +176,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 	}
 
-	if command[0] == callCommand && command[1] == "add" {
+	if command[0] == callCommand && len(command) > 2 && command[1] == "add" {
 		err := albumadd(s, m)
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, err.Error())
