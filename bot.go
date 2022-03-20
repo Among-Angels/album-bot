@@ -11,6 +11,9 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+//自分のbotを使用する場合はココを変更
+var callCommand = "!a"
+
 func New() {
 	discordToken := "Bot " + os.Getenv("DISCORD_TOKEN")
 
@@ -82,16 +85,16 @@ func getNumFromNumEmoji(s string) (int, bool) {
 
 func albumadd(s *discordgo.Session, m *discordgo.MessageCreate) error {
 	contents := strings.Split(m.Content, " ")
-	if len(contents) != 2 {
-		return fmt.Errorf("→ !albumadd actual_albumname の形でファイルをアップロードしてね！")
+	if len(contents) != 3 {
+		return fmt.Errorf("→ " + callCommand + " add actual_albumname の形でファイルをアップロードしてね！")
 	}
-	title := contents[1]
+	title := contents[2]
 	titles, err := GetAlbumTitles()
 	if err != nil {
 		return err
 	}
 	if !contains(titles, title) {
-		return fmt.Errorf("%sというアルバムはなかったよ。!albumcreateコマンドで作れるよ！", title)
+		return fmt.Errorf("%sというアルバムはなかったよ。"+callCommand+" createコマンドで作れるよ！", title)
 	}
 	if len(m.Attachments) == 0 {
 		return fmt.Errorf("画像が一枚も添付されてないよ。")
@@ -114,21 +117,27 @@ func albumadd(s *discordgo.Session, m *discordgo.MessageCreate) error {
 	}
 	return nil
 }
+
 func checkclhelp() string {
-	return `・登録されているアルバムから見たいアルバムを選択する
-!album 
-・アルバムを作成する
-!albumcreate albumtitle
-・アルバムに写真を追加する（以下のコマンドと同時に写真を添付）
-!albumadd actual_albumname
-	`
+	return callCommand + "\n・登録されているアルバムから見たいアルバムを選択する\n" +
+		callCommand + " create albumtitle\n・アルバムを作成する\n" +
+		callCommand + " add actual_albumname\n・アルバムに写真を追加する（以下のコマンドと同時に写真を添付）\n"
+
 }
+
+func commandSplit(str string) []string {
+	commandArray := strings.Split(str, " ")
+	return commandArray
+}
+
 func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	if m.Content == "!Hello" {
+	command := commandSplit(m.Content)
+
+	if command[0] == "!Hello" {
 		s.ChannelMessageSend(m.ChannelID, "Hello")
 	}
-	if (m.Content == "!albumbot -h") || (m.Content == "!albumbot -help") || (m.Content == "!albumbot help") {
+	if (m.Content == callCommand+" -h") || (m.Content == callCommand+" -help") || (m.Content == callCommand+" help") {
 		s.ChannelMessageSend(m.ChannelID, checkclhelp())
 	}
 	if m.Content == "!taisho" {
@@ -137,7 +146,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSend(m.ChannelID, urls[0])
 	}
 
-	if m.Content == "!album" {
+	if m.Content == callCommand {
 		titles, err := GetAlbumTitles()
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, err.Error())
@@ -155,20 +164,19 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 	}
 
-	if strings.HasPrefix(m.Content, "!albumcreate") {
-		arr1 := strings.Split(m.Content, " ")
-		if len(arr1) == 2 && arr1[0] == "!albumcreate" {
-			err := CreateAlbum(arr1[1])
+	if command[0] == callCommand && len(command) > 2 && command[1] == "create" {
+		if len(command) == 3 {
+			err := CreateAlbum(command[2])
 			if err != nil {
 				s.ChannelMessageSend(m.ChannelID, err.Error())
 			}
-			s.ChannelMessageSend(m.ChannelID, arr1[1]+"というアルバムを作成したよ！")
+			s.ChannelMessageSend(m.ChannelID, command[2]+"というアルバムを作成したよ！")
 		} else {
-			s.ChannelMessageSend(m.ChannelID, "→ !albumcreate titlename の形で記入してね！")
+			s.ChannelMessageSend(m.ChannelID, "→ "+callCommand+" create titlename の形で記入してね！")
 		}
 	}
 
-	if strings.HasPrefix(m.Content, "!albumadd") {
+	if command[0] == callCommand && len(command) > 2 && command[1] == "add" {
 		err := albumadd(s, m)
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, err.Error())
