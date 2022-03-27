@@ -53,7 +53,7 @@ func TestGetAlbumTitles(t *testing.T) {
 	}}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotTitles, err := getAlbumTitles(context.Background(), mockClient)
+			gotTitles, err := getAlbumTitles(tableForTest, context.Background(), mockClient)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetAlbumTitles() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -71,6 +71,7 @@ func TestGetAlbumUrls(t *testing.T) {
 		"https://test3.png",
 	}
 	type args struct {
+		table string
 		title string
 	}
 	tests := []struct {
@@ -80,13 +81,14 @@ func TestGetAlbumUrls(t *testing.T) {
 	}{{
 		name: "_test",
 		args: args{
+			table: tableForTest,
 			title: "_test",
 		},
 		want: wants,
 	}}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetAlbumUrls(tt.args.title)
+			got, err := GetAlbumUrls(tt.args.table, tt.args.title)
 			if err != nil {
 				panic(err)
 			}
@@ -137,7 +139,7 @@ func TestGetAlbumPage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got, _ := GetAlbumPage(tt.args.title, tt.args.start, tt.args.count); !reflect.DeepEqual(got, tt.want) {
+			if got, _ := GetAlbumPage(tableForTest, tt.args.title, tt.args.start, tt.args.count); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetAlbumPage() = %v, want %v", got, tt.want)
 			}
 		})
@@ -165,9 +167,11 @@ func TestPostAlbumUrl(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := PostAlbumUrl(tt.args.albumTitle, tt.args.url); (err != nil) != tt.wantErr {
+			if err := PostAlbumUrl(tableForTest, tt.args.albumTitle, tt.args.url); (err != nil) != tt.wantErr {
 				t.Errorf("PostAlbumUrl() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
+
+const tableForTest = "Albums"
