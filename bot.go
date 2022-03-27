@@ -11,11 +11,11 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-//自分のbotを使用する場合はココを変更
-var callCommand = "!a"
+var callCommand string
 
 func New() {
 	discordToken := "Bot " + os.Getenv("DISCORD_TOKEN")
+	callCommand = os.Getenv("CALL_COMMAND")
 
 	session, err := discordgo.New()
 	if err != nil {

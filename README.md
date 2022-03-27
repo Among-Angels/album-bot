@@ -5,6 +5,7 @@
 ### 事前準備
 
 1. .env をプロジェクト直下(albumbot/)に配置し、Discord トークンと DynamoDB のテーブル名を[リンク先](https://discordapp.com/channels/252122237761486849/788388972825018368/891657884570619934)のように書く
+1. .env 内に CALL_COMMAND を設定する。
 1. [AWS の認証情報を書く](https://docs.aws.amazon.com/ja_jp/cli/latest/userguide/cli-configure-files.html)
 
 ### 起動コマンド
