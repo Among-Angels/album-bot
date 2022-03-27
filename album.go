@@ -3,7 +3,6 @@ package albumbot
 import (
 	"context"
 	"fmt"
-	"os"
 	"sort"
 	"time"
 
@@ -40,7 +39,7 @@ type Albums struct {
 
 func getAlbumTitles(table string, c context.Context, client dynamodb.ScanAPIClient) (titles []string, e error) {
 	var awsTable = aws.String(table)
-  key := "Title, AlbumIndex"
+	key := "Title, AlbumIndex"
 	params := &dynamodb.ScanInput{
 		TableName:            awsTable,
 		ProjectionExpression: &key,
