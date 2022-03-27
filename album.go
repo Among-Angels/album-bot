@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sort"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -26,8 +28,9 @@ func init() {
 
 // Albumはタイトルとそれに紐付けられた画像URLの集合です。
 type Album struct {
-	Title string
-	Urls  []string
+	Title      string
+	Urls       []string
+	AlbumIndex int
 }
 
 // Albumsはアルバムデータが保存されたJsonファイル全体を表現します。
@@ -37,7 +40,7 @@ type Albums struct {
 
 func getAlbumTitles(c context.Context, client dynamodb.ScanAPIClient) (titles []string, e error) {
 	var table = aws.String(os.Getenv("TABLE_NAME"))
-	key := "Title"
+	key := "Title, AlbumIndex"
 	params := &dynamodb.ScanInput{
 		TableName:            table,
 		ProjectionExpression: &key,
@@ -53,6 +56,7 @@ func getAlbumTitles(c context.Context, client dynamodb.ScanAPIClient) (titles []
 	if err != nil {
 		panic(fmt.Sprintf("failed to unmarshal Dynamodb Scan Items, %v", err))
 	}
+	sort.Slice(albums, func(i, j int) bool { return albums[i].AlbumIndex < albums[j].AlbumIndex })
 	for _, al := range albums {
 		titles = append(titles, al.Title)
 	}
@@ -151,10 +155,12 @@ func CreateAlbum(title string) error {
 			return fmt.Errorf("すでに存在するアルバム名です。")
 		}
 	}
+	timestamp := fmt.Sprint(time.Now().Unix())
 	input := &dynamodb.PutItemInput{
 		Item: map[string]types.AttributeValue{
-			"Title": &types.AttributeValueMemberS{Value: title},
-			"urls":  &types.AttributeValueMemberL{},
+			"Title":      &types.AttributeValueMemberS{Value: title},
+			"urls":       &types.AttributeValueMemberL{},
+			"AlbumIndex": &types.AttributeValueMemberN{Value: timestamp},
 		},
 		TableName: table,
 	}
