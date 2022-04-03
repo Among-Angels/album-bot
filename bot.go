@@ -13,7 +13,11 @@ import (
 
 var callCommand string
 
+// New()の中で上書きされる可能性がある
+var table = "Albums"
+
 func New() {
+	table = os.Getenv("TABLE_NAME")
 
 	discordToken := "Bot " + os.Getenv("DISCORD_TOKEN")
 	var ok bool
@@ -93,7 +97,7 @@ func albumadd(s *discordgo.Session, m *discordgo.MessageCreate) error {
 		return fmt.Errorf("→ " + callCommand + " add actual_albumname の形でファイルをアップロードしてね！")
 	}
 	title := contents[2]
-	titles, err := GetAlbumTitles()
+	titles, err := GetAlbumTitles(table)
 	if err != nil {
 		return err
 	}
@@ -106,7 +110,7 @@ func albumadd(s *discordgo.Session, m *discordgo.MessageCreate) error {
 	invalidAttaches := []string{}
 	for _, attach := range m.Attachments {
 		if isUrlImage(attach.URL) {
-			err := PostAlbumUrl(title, attach.URL)
+			err := PostImage(table, title, attach.URL)
 			if err != nil {
 				return err
 			}
@@ -135,9 +139,7 @@ func commandSplit(str string) []string {
 }
 
 func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-
 	command := commandSplit(m.Content)
-
 	if command[0] == "!Hello" {
 		s.ChannelMessageSend(m.ChannelID, "Hello")
 	}
@@ -145,13 +147,13 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSend(m.ChannelID, checkclhelp())
 	}
 	if m.Content == "!taisho" {
-		urls, e := GetAlbumUrls("taisho")
+		urls, e := GetAlbumUrls(table, "taisho")
 		fmt.Println(e)
 		s.ChannelMessageSend(m.ChannelID, urls[0])
 	}
 
 	if m.Content == callCommand {
-		titles, err := GetAlbumTitles()
+		titles, err := GetAlbumTitles(table)
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, err.Error())
 		}
@@ -165,12 +167,13 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 				s.ChannelMessageSend(m.ChannelID, getNumEmoji(i+1)+" "+titles[i])
 			}
 			s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
+			s.ChannelMessageEdit(m.ChannelID, m.ID, "番号を選んでね！")
 		}
 	}
 
 	if command[0] == callCommand && len(command) > 2 && command[1] == "create" {
 		if len(command) == 3 {
-			err := CreateAlbum(command[2])
+			err := CreateAlbum(table, command[2])
 			if err != nil {
 				s.ChannelMessageSend(m.ChannelID, err.Error())
 			}
@@ -188,7 +191,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if m.Content == "番号を選んでね！" && m.Author.ID == s.State.User.ID {
-		titles, err := GetAlbumTitles()
+		titles, err := GetAlbumTitles(table)
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, err.Error())
 		}
@@ -205,7 +208,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
-	titles, err := GetAlbumTitles()
+	titles, err := GetAlbumTitles(table)
 	if err != nil {
 		s.ChannelMessageSend(r.ChannelID, err.Error())
 	}
@@ -225,7 +228,7 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 		if NumEmojiFlag {
 			s.ChannelMessageDelete(r.ChannelID, r.MessageID)
 
-			urls, err := GetAlbumUrls(titles[index])
+			urls, err := GetAlbumUrls(table, titles[index])
 			if err != nil {
 				s.ChannelMessageSend(r.ChannelID, err.Error())
 			}
@@ -233,7 +236,6 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 			for _, url := range urls {
 				s.ChannelMessageSend(r.ChannelID, url)
 			}
-
 		}
 	} else {
 

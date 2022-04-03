@@ -53,7 +53,7 @@ func TestGetAlbumTitles(t *testing.T) {
 	}}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotTitles, err := getAlbumTitles(context.Background(), mockClient)
+			gotTitles, err := getAlbumTitles(tableForTest, context.Background(), mockClient)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetAlbumTitles() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -71,6 +71,7 @@ func TestGetAlbumUrls(t *testing.T) {
 		"https://test3.png",
 	}
 	type args struct {
+		table string
 		title string
 	}
 	tests := []struct {
@@ -80,13 +81,14 @@ func TestGetAlbumUrls(t *testing.T) {
 	}{{
 		name: "_test",
 		args: args{
+			table: tableForTest,
 			title: "_test",
 		},
 		want: wants,
 	}}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetAlbumUrls(tt.args.title)
+			got, err := GetAlbumUrls(tt.args.table, tt.args.title)
 			if err != nil {
 				panic(err)
 			}
@@ -137,14 +139,14 @@ func TestGetAlbumPage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got, _ := GetAlbumPage(tt.args.title, tt.args.start, tt.args.count); !reflect.DeepEqual(got, tt.want) {
+			if got, _ := GetAlbumPage(tableForTest, tt.args.title, tt.args.start, tt.args.count); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetAlbumPage() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestPostAlbumUrl(t *testing.T) {
+func TestPostImage(t *testing.T) {
 	type args struct {
 		albumTitle string
 		url        string
@@ -165,9 +167,103 @@ func TestPostAlbumUrl(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := PostAlbumUrl(tt.args.albumTitle, tt.args.url); (err != nil) != tt.wantErr {
-				t.Errorf("PostAlbumUrl() error = %v, wantErr %v", err, tt.wantErr)
+			if err := PostImage(tableForTest, tt.args.albumTitle, tt.args.url); (err != nil) != tt.wantErr {
+				t.Errorf("PostImage() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
+
+func TestCreateAlbum(t *testing.T) {
+	type args struct {
+		table string
+		title string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "error",
+			args: args{
+				table: tableForTest,
+				title: "_test",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := CreateAlbum(tt.args.table, tt.args.title); (err != nil) != tt.wantErr {
+				t.Errorf("CreateAlbum() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestCreateAndDeleteAlbum(t *testing.T) {
+	type args struct {
+		table string
+		title string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal case",
+			args: args{
+				table: tableForTest,
+				title: "_testForCreateAndDeleteAlbum",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := CreateAlbum(tt.args.table, tt.args.title); (err != nil) != tt.wantErr {
+				t.Errorf("CreateAlbum() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err := DeleteAlbum(tt.args.table, tt.args.title); (err != nil) != tt.wantErr {
+				t.Errorf("DeleteAlbum() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPostAndDeleteImage(t *testing.T) {
+	type args struct {
+		table string
+		title string
+		url   string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal case",
+			args: args{
+				table: tableForTest,
+				title: "_test",
+				url:   "testForPostAndDeleteImage",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := PostImage(tt.args.table, tt.args.title, tt.args.url); (err != nil) != tt.wantErr {
+				t.Errorf("PostImage() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err := DeleteImage(tt.args.table, tt.args.title, tt.args.url); (err != nil) != tt.wantErr {
+				t.Errorf("DeleteImage() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+const tableForTest = "Albums"
