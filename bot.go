@@ -106,7 +106,7 @@ func albumadd(s *discordgo.Session, m *discordgo.MessageCreate) error {
 	invalidAttaches := []string{}
 	for _, attach := range m.Attachments {
 		if isUrlImage(attach.URL) {
-			err := PostAlbumUrl(table, title, attach.URL)
+			err := PostImage(table, title, attach.URL)
 			if err != nil {
 				return err
 			}

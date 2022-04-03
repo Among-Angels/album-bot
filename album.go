@@ -130,8 +130,8 @@ func titleExists(table, title string) (bool, error) {
 	return false, nil
 }
 
-// PostAlbumUrlは与えられたアルバム名のUrl配列に与えられたUrlを追加します
-func PostAlbumUrl(table, title, url string) error {
+// PostImageは与えられたアルバム名のUrl配列に与えられたUrlを追加します
+func PostImage(table, title, url string) error {
 	exists, err := titleExists(table, title)
 	if err != nil {
 		return err
@@ -202,6 +202,35 @@ func DeleteAlbum(table, title string) error {
 		TableName: awsTable,
 	}
 	_, err = dbClient.DeleteItem(context.TODO(), input)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// DeleteAlbumUrlは与えられたアルバム名のUrlをDynamoDB上から削除します
+func DeleteImage(table, title, url string) error {
+	exists, err := titleExists(table, title)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("存在しないアルバム名です。")
+	}
+	var awsTable = aws.String(table)
+	input := &dynamodb.UpdateItemInput{
+		Key: map[string]types.AttributeValue{
+			"Title": &types.AttributeValueMemberS{Value: title},
+		},
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":url": &types.AttributeValueMemberSS{
+				Value: []string{url},
+			},
+		},
+		UpdateExpression: aws.String("DELETE urls :url"),
+		TableName:        awsTable,
+	}
+	_, err = dbClient.UpdateItem(context.TODO(), input)
 	if err != nil {
 		return err
 	}
