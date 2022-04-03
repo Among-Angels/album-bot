@@ -146,7 +146,7 @@ func TestGetAlbumPage(t *testing.T) {
 	}
 }
 
-func TestPostAlbumUrl(t *testing.T) {
+func TestPostImage(t *testing.T) {
 	type args struct {
 		albumTitle string
 		url        string
@@ -167,8 +167,8 @@ func TestPostAlbumUrl(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := PostAlbumUrl(tableForTest, tt.args.albumTitle, tt.args.url); (err != nil) != tt.wantErr {
-				t.Errorf("PostAlbumUrl() error = %v, wantErr %v", err, tt.wantErr)
+			if err := PostImage(tableForTest, tt.args.albumTitle, tt.args.url); (err != nil) != tt.wantErr {
+				t.Errorf("PostImage() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -202,6 +202,39 @@ func TestCreateAndDeleteAlbum(t *testing.T) {
 			}
 			if err := DeleteAlbum(tt.args.table, tt.args.title); (err != nil) != tt.wantErr {
 				t.Errorf("DeleteAlbum() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPostAndDeleteImage(t *testing.T) {
+	type args struct {
+		table string
+		title string
+		url   string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal case",
+			args: args{
+				table: tableForTest,
+				title: "_test",
+				url:   "testForPostAndDeleteImage",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := PostImage(tt.args.table, tt.args.title, tt.args.url); (err != nil) != tt.wantErr {
+				t.Errorf("PostImage() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err := DeleteImage(tt.args.table, tt.args.title, tt.args.url); (err != nil) != tt.wantErr {
+				t.Errorf("DeleteImage() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
