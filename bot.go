@@ -14,9 +14,14 @@ import (
 var callCommand string
 
 func New() {
-	discordToken := "Bot " + os.Getenv("DISCORD_TOKEN")
-	callCommand = os.Getenv("CALL_COMMAND")
 
+	discordToken := "Bot " + os.Getenv("DISCORD_TOKEN")
+	callCommand, ok := os.LookupEnv("CALL_COMMAND")
+	_ = callCommand
+	_ = ok
+	if !ok {
+		callCommand = "!album"
+	}
 	session, err := discordgo.New()
 	if err != nil {
 		fmt.Println("Error in create session")
