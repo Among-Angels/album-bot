@@ -174,7 +174,33 @@ func TestPostImage(t *testing.T) {
 	}
 }
 
-const tableForTest = "Albums"
+func TestCreateAlbum(t *testing.T) {
+	type args struct {
+		table string
+		title string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "error",
+			args: args{
+				table: tableForTest,
+				title: "_test",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := CreateAlbum(tt.args.table, tt.args.title); (err != nil) != tt.wantErr {
+				t.Errorf("CreateAlbum() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
 
 func TestCreateAndDeleteAlbum(t *testing.T) {
 	type args struct {
@@ -239,3 +265,5 @@ func TestPostAndDeleteImage(t *testing.T) {
 		})
 	}
 }
+
+const tableForTest = "Albums"

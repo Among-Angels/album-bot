@@ -117,29 +117,8 @@ func GetAlbumPage(table, title string, start, count int) (urls []string, e error
 	return allUrls[start : start+count], nil
 }
 
-func titleExists(table, title string) (bool, error) {
-	titles, err := GetAlbumTitles(table)
-	if err != nil {
-		return false, err
-	}
-	for _, t := range titles {
-		if t == title {
-			return true, nil
-		}
-	}
-	return false, nil
-}
-
 // PostImageは与えられたアルバム名のUrl配列に与えられたUrlを追加します
 func PostImage(table, title, url string) error {
-	exists, err := titleExists(table, title)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return fmt.Errorf("指定されたアルバム名は存在しません")
-	}
-
 	var awsTable = aws.String(table)
 	input := &dynamodb.UpdateItemInput{
 		Key: map[string]types.AttributeValue{
@@ -152,8 +131,12 @@ func PostImage(table, title, url string) error {
 		},
 		UpdateExpression: aws.String("ADD urls :url"),
 		TableName:        awsTable,
+		ExpressionAttributeNames: map[string]string{
+			"#t": "Title",
+		},
+		ConditionExpression: aws.String("attribute_exists(#t)"),
 	}
-	_, err = dbClient.UpdateItem(context.TODO(), input)
+	_, err := dbClient.UpdateItem(context.TODO(), input)
 	if err != nil {
 		return err
 	}
@@ -162,13 +145,6 @@ func PostImage(table, title, url string) error {
 
 // CreateAlbumは新しいアルバムをDynamoDB上に作成します
 func CreateAlbum(table, title string) error {
-	exists, err := titleExists(table, title)
-	if err != nil {
-		return err
-	}
-	if exists {
-		return fmt.Errorf("すでに存在するアルバム名です。")
-	}
 	timestamp := fmt.Sprint(time.Now().Unix())
 	var awsTable = aws.String(table)
 	input := &dynamodb.PutItemInput{
@@ -177,8 +153,12 @@ func CreateAlbum(table, title string) error {
 			"AlbumIndex": &types.AttributeValueMemberN{Value: timestamp},
 		},
 		TableName: awsTable,
+		ExpressionAttributeNames: map[string]string{
+			"#t": "Title",
+		},
+		ConditionExpression: aws.String("attribute_not_exists(#t)"),
 	}
-	_, err = dbClient.PutItem(context.TODO(), input)
+	_, err := dbClient.PutItem(context.TODO(), input)
 	if err != nil {
 		return err
 	}
@@ -187,21 +167,18 @@ func CreateAlbum(table, title string) error {
 
 // DeleteAlbumは与えられたアルバム名をDynamoDB上から削除します
 func DeleteAlbum(table, title string) error {
-	exists, err := titleExists(table, title)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return fmt.Errorf("存在しないアルバム名です。")
-	}
 	var awsTable = aws.String(table)
 	input := &dynamodb.DeleteItemInput{
 		Key: map[string]types.AttributeValue{
 			"Title": &types.AttributeValueMemberS{Value: title},
 		},
 		TableName: awsTable,
+		ExpressionAttributeNames: map[string]string{
+			"#t": "Title",
+		},
+		ConditionExpression: aws.String("attribute_exists(#t)"),
 	}
-	_, err = dbClient.DeleteItem(context.TODO(), input)
+	_, err := dbClient.DeleteItem(context.TODO(), input)
 	if err != nil {
 		return err
 	}
@@ -210,13 +187,6 @@ func DeleteAlbum(table, title string) error {
 
 // DeleteAlbumUrlは与えられたアルバム名のUrlをDynamoDB上から削除します
 func DeleteImage(table, title, url string) error {
-	exists, err := titleExists(table, title)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return fmt.Errorf("存在しないアルバム名です。")
-	}
 	var awsTable = aws.String(table)
 	input := &dynamodb.UpdateItemInput{
 		Key: map[string]types.AttributeValue{
@@ -229,8 +199,12 @@ func DeleteImage(table, title, url string) error {
 		},
 		UpdateExpression: aws.String("DELETE urls :url"),
 		TableName:        awsTable,
+		ExpressionAttributeNames: map[string]string{
+			"#t": "Title",
+		},
+		ConditionExpression: aws.String("attribute_exists(#t)"),
 	}
-	_, err = dbClient.UpdateItem(context.TODO(), input)
+	_, err := dbClient.UpdateItem(context.TODO(), input)
 	if err != nil {
 		return err
 	}
