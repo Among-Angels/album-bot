@@ -16,9 +16,8 @@ var callCommand string
 func New() {
 
 	discordToken := "Bot " + os.Getenv("DISCORD_TOKEN")
-	callCommand, ok := os.LookupEnv("CALL_COMMAND")
-	_ = callCommand
-	_ = ok
+	var ok bool
+	callCommand, ok = os.LookupEnv("CALL_COMMAND")
 	if !ok {
 		callCommand = "!album"
 	}
