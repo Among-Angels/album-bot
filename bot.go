@@ -271,14 +271,12 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 				for i := 0; i+5*pageindex < len(urls); i++ {
 					tmpurl += " " + urls[i+5*pageindex]
 				}
-				//s.ChannelMessageEdit(r.ChannelID, message.ID, "左の矢印スタンプでページ遷移します "+tmpurl)
 				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
 				s.ChannelMessageSend(r.ChannelID, "左の矢印スタンプでページ遷移します "+tmpurl)
 			} else {
 				for i := 0; i+5*pageindex < 5*(pageindex+1); i++ {
 					tmpurl += " " + urls[i+5*pageindex]
 				}
-				//s.ChannelMessageEdit(r.ChannelID, message.ID, "左右の矢印スタンプでページ遷移します "+tmpurl)
 				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
 				s.ChannelMessageSend(r.ChannelID, "左右の矢印スタンプでページ遷移します "+tmpurl)
 			}
@@ -295,14 +293,12 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 				for i := 0; i < 5; i++ {
 					tmpurl += " " + urls[i]
 				}
-				//s.ChannelMessageEdit(r.ChannelID, message.ID, "右の矢印スタンプでページ遷移します "+tmpurl)
 				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
 				s.ChannelMessageSend(r.ChannelID, "右の矢印スタンプでページ遷移します "+tmpurl)
 			} else {
 				for i := 0; i+5*pageindex < len(urls); i++ {
 					tmpurl += " " + urls[i+5*pageindex]
 				}
-				//s.ChannelMessageEdit(r.ChannelID, message.ID, "左右の矢印スタンプでページ遷移します "+tmpurl)
 				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
 				s.ChannelMessageSend(r.ChannelID, "左右の矢印スタンプでページ遷移します "+tmpurl)
 			}
@@ -319,14 +315,12 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 				for i := 0; i+5*pageindex < len(urls); i++ {
 					tmpurl += " " + urls[i+5*pageindex]
 				}
-				//s.ChannelMessageEdit(r.ChannelID, message.ID, "左の矢印スタンプでページ遷移します "+tmpurl)
 				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
 				s.ChannelMessageSend(r.ChannelID, "左の矢印スタンプでページ遷移します "+tmpurl)
 			} else {
 				for i := 0; i+5*pageindex < 5*(pageindex+1); i++ {
 					tmpurl += " " + urls[i+5*pageindex]
 				}
-				//s.ChannelMessageEdit(r.ChannelID, message.ID, "左右の矢印スタンプでページ遷移します "+tmpurl)
 				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
 				s.ChannelMessageSend(r.ChannelID, "左右の矢印スタンプでページ遷移します "+tmpurl)
 			}
@@ -340,14 +334,12 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 				for i := 0; i < 5; i++ {
 					tmpurl += " " + urls[i]
 				}
-				//s.ChannelMessageEdit(r.ChannelID, message.ID, "右の矢印スタンプでページ遷移します "+tmpurl)
 				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
 				s.ChannelMessageSend(r.ChannelID, "右の矢印スタンプでページ遷移します "+tmpurl)
 			} else {
 				for i := 0; i+5*pageindex < len(urls); i++ {
 					tmpurl += " " + urls[i+5*pageindex]
 				}
-				//s.ChannelMessageEdit(r.ChannelID, message.ID, "左右の矢印スタンプでページ遷移します "+tmpurl)
 				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
 				s.ChannelMessageSend(r.ChannelID, "左右の矢印スタンプでページ遷移します "+tmpurl)
 			}
