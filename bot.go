@@ -15,6 +15,9 @@ import (
 var callCommand = "!album"
 
 // New()の中で上書きされる可能性がある
+var titleindex = 0 //titleのindexを保持
+var pageindex = 0  //ページのindexを保持
+
 var table = "Albums"
 
 func New() {
@@ -150,18 +153,21 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if m.Content == callCommand {
 		titles, err := GetAlbumTitles(table)
+		tmpstr := ""
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, err.Error())
 		}
 		if len(titles) <= 10 {
 			for i, v := range titles {
-				s.ChannelMessageSend(m.ChannelID, getNumEmoji(i+1)+" "+v)
+				tmpstr += getNumEmoji(i+1) + " " + v + "\n"
 			}
+			s.ChannelMessageSend(m.ChannelID, tmpstr)
 			s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
 		} else {
 			for i := 0; i < 10; i++ {
-				s.ChannelMessageSend(m.ChannelID, getNumEmoji(i+1)+" "+titles[i])
+				tmpstr += getNumEmoji(i+1) + " " + titles[i] + "\n"
 			}
+			s.ChannelMessageSend(m.ChannelID, tmpstr)
 			s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
 			s.ChannelMessageEdit(m.ChannelID, m.ID, "番号を選んでね！")
 		}
@@ -202,9 +208,25 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			s.MessageReactionAdd(m.ChannelID, m.ID, "➡️")
 		}
 	}
+
+	if strings.HasPrefix(m.Content, "右の矢印スタンプでページ遷移します") && m.Author.ID == s.State.User.ID {
+
+		s.MessageReactionAdd(m.ChannelID, m.ID, "➡️")
+	}
+	if strings.HasPrefix(m.Content, "左の矢印スタンプでページ遷移します") && m.Author.ID == s.State.User.ID {
+
+		s.MessageReactionAdd(m.ChannelID, m.ID, "⬅")
+	}
+	if strings.HasPrefix(m.Content, "左右の矢印スタンプでページ遷移します") && m.Author.ID == s.State.User.ID {
+		s.MessageReactionAdd(m.ChannelID, m.ID, "⬅")
+		s.MessageReactionAdd(m.ChannelID, m.ID, "➡️")
+	}
+
 }
+
 func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	titles, err := GetAlbumTitles(table)
+	tmpurl := ""
 	if err != nil {
 		s.ChannelMessageSend(r.ChannelID, err.Error())
 	}
@@ -212,15 +234,10 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	if err != nil {
 		s.ChannelMessageSend(r.ChannelID, err.Error())
 	}
-	//botが投稿した"番号を選んでね！"のメッセージのみ処理
 	if r.UserID != s.State.User.ID && message.Content == "番号を選んでね！" && message.Author.ID == s.State.User.ID {
-		if r.MessageReaction.Emoji.Name == "➡️" { //アルバムのページを進める操作予定
-
-		} else if r.MessageReaction.Emoji.Name == "⬅️" { //アルバムのページを戻す操作予定
-
-		}
-
 		index, NumEmojiFlag := getNumFromNumEmoji(r.MessageReaction.Emoji.Name)
+		titleindex = index
+
 		if NumEmojiFlag {
 			s.ChannelMessageDelete(r.ChannelID, r.MessageID)
 
@@ -229,8 +246,110 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 				s.ChannelMessageSend(r.ChannelID, err.Error())
 			}
 			s.ChannelMessageSend(r.ChannelID, "> "+titles[index])
-			for _, url := range urls {
-				s.ChannelMessageSend(r.ChannelID, url)
+			if len(urls) < 5 {
+				for i := 0; i < len(urls); i++ {
+					tmpurl += " " + urls[i]
+				}
+				s.ChannelMessageSend(r.ChannelID, tmpurl)
+			} else {
+				for i := 0; i < 5; i++ {
+					tmpurl += " " + urls[i]
+				}
+				s.ChannelMessageSend(r.ChannelID, "右の矢印スタンプでページ遷移します"+tmpurl)
+			}
+		}
+
+		//右の矢印スタンプでページ遷移します
+	} else if r.UserID != s.State.User.ID && strings.HasPrefix(message.Content, "右の矢印スタンプでページ遷移します") && message.Author.ID == s.State.User.ID {
+		if r.MessageReaction.Emoji.Name == "➡️" { //アルバムのページを進める操作
+			pageindex += 1
+			urls, err := GetAlbumUrls(table, titles[titleindex])
+			if err != nil {
+				s.ChannelMessageSend(r.ChannelID, err.Error())
+			}
+			if (5*pageindex < len(urls)) && (len(urls) <= 5*(pageindex+1)) {
+				for i := 0; i+5*pageindex < len(urls); i++ {
+					tmpurl += " " + urls[i+5*pageindex]
+				}
+				//s.ChannelMessageEdit(r.ChannelID, message.ID, "左の矢印スタンプでページ遷移します "+tmpurl)
+				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
+				s.ChannelMessageSend(r.ChannelID, "左の矢印スタンプでページ遷移します "+tmpurl)
+			} else {
+				for i := 0; i+5*pageindex < 5*(pageindex+1); i++ {
+					tmpurl += " " + urls[i+5*pageindex]
+				}
+				//s.ChannelMessageEdit(r.ChannelID, message.ID, "左右の矢印スタンプでページ遷移します "+tmpurl)
+				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
+				s.ChannelMessageSend(r.ChannelID, "左右の矢印スタンプでページ遷移します "+tmpurl)
+			}
+		}
+		//左の矢印スタンプでページ遷移します
+	} else if r.UserID != s.State.User.ID && strings.HasPrefix(message.Content, "左の矢印スタンプでページ遷移します") && message.Author.ID == s.State.User.ID {
+		if r.MessageReaction.Emoji.Name == "⬅" { //アルバムのページを戻す操作予定
+			pageindex -= 1
+			urls, err := GetAlbumUrls(table, titles[titleindex])
+			if err != nil {
+				s.ChannelMessageSend(r.ChannelID, err.Error())
+			}
+			if pageindex == 0 {
+				for i := 0; i < 5; i++ {
+					tmpurl += " " + urls[i]
+				}
+				//s.ChannelMessageEdit(r.ChannelID, message.ID, "右の矢印スタンプでページ遷移します "+tmpurl)
+				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
+				s.ChannelMessageSend(r.ChannelID, "右の矢印スタンプでページ遷移します "+tmpurl)
+			} else {
+				for i := 0; i+5*pageindex < len(urls); i++ {
+					tmpurl += " " + urls[i+5*pageindex]
+				}
+				//s.ChannelMessageEdit(r.ChannelID, message.ID, "左右の矢印スタンプでページ遷移します "+tmpurl)
+				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
+				s.ChannelMessageSend(r.ChannelID, "左右の矢印スタンプでページ遷移します "+tmpurl)
+			}
+		}
+		//左右の矢印スタンプでページ遷移します
+	} else if r.UserID != s.State.User.ID && strings.HasPrefix(message.Content, "左右の矢印スタンプでページ遷移します") && message.Author.ID == s.State.User.ID {
+		if r.MessageReaction.Emoji.Name == "➡️" { //アルバムのページを進める操作予定
+			pageindex += 1
+			urls, err := GetAlbumUrls(table, titles[titleindex])
+			if err != nil {
+				s.ChannelMessageSend(r.ChannelID, err.Error())
+			}
+			if 5*pageindex < len(urls) && len(urls) <= 5*(pageindex+1) {
+				for i := 0; i+5*pageindex < len(urls); i++ {
+					tmpurl += " " + urls[i+5*pageindex]
+				}
+				//s.ChannelMessageEdit(r.ChannelID, message.ID, "左の矢印スタンプでページ遷移します "+tmpurl)
+				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
+				s.ChannelMessageSend(r.ChannelID, "左の矢印スタンプでページ遷移します "+tmpurl)
+			} else {
+				for i := 0; i+5*pageindex < 5*(pageindex+1); i++ {
+					tmpurl += " " + urls[i+5*pageindex]
+				}
+				//s.ChannelMessageEdit(r.ChannelID, message.ID, "左右の矢印スタンプでページ遷移します "+tmpurl)
+				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
+				s.ChannelMessageSend(r.ChannelID, "左右の矢印スタンプでページ遷移します "+tmpurl)
+			}
+		} else if r.MessageReaction.Emoji.Name == "⬅" { //アルバムのページを戻す操作予定
+			pageindex -= 1
+			urls, err := GetAlbumUrls(table, titles[titleindex])
+			if err != nil {
+				s.ChannelMessageSend(r.ChannelID, err.Error())
+			}
+			if pageindex == 0 {
+				for i := 0; i < 5; i++ {
+					tmpurl += " " + urls[i]
+				}
+				//s.ChannelMessageEdit(r.ChannelID, message.ID, "右の矢印スタンプでページ遷移します "+tmpurl)
+				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
+				s.ChannelMessageSend(r.ChannelID, "右の矢印スタンプでページ遷移します "+tmpurl)
+			} else {
+				for i := 0; i+5*pageindex < len(urls); i++ {
+					tmpurl += " " + urls[i+5*pageindex]
+				}
+				//s.ChannelMessageEdit(r.ChannelID, message.ID, "左右の矢印スタンプでページ遷移します "+tmpurl)
+				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
+				s.ChannelMessageSend(r.ChannelID, "左右の矢印スタンプでページ遷移します "+tmpurl)
 			}
 		}
 	} else {
