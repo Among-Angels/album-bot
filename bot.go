@@ -163,7 +163,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 				if i >= 9 {
 					break
 				}
-			}		
+			}
 			s.ChannelMessageSend(m.ChannelID, tmpstr)
 			s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
 		}
