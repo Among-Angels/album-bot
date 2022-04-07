@@ -158,17 +158,14 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 		if len(titles) <= 10 {
 			for i, v := range titles {
+				s.ChannelMessageSend(m.ChannelID, getNumEmoji(i+1)+" "+v)
 				tmpstr += getNumEmoji(i+1) + " " + v + "\n"
-			}
+				if i >= 9 {
+					break
+				}
+			}		
 			s.ChannelMessageSend(m.ChannelID, tmpstr)
 			s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
-		} else {
-			for i := 0; i < 10; i++ {
-				tmpstr += getNumEmoji(i+1) + " " + titles[i] + "\n"
-			}
-			s.ChannelMessageSend(m.ChannelID, tmpstr)
-			s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
-			s.ChannelMessageEdit(m.ChannelID, m.ID, "番号を選んでね！")
 		}
 	}
 
