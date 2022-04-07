@@ -14,7 +14,6 @@ import (
 //自分のbotを使用する場合はココを変更
 var callCommand = "!album"
 
-// New()の中で上書きされる可能性がある
 var titleindex = 0 //titleのindexを保持
 var pageindex = 0  //ページのindexを保持
 
