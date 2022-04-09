@@ -36,7 +36,7 @@ func New() {
 	defer session.Close()
 
 	sc := make(chan os.Signal, 1)
-	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
+	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, syscall.SIGTERM)
 
 	fmt.Println("booted!!!")
 
@@ -136,38 +136,36 @@ func commandSplit(str string) []string {
 
 func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	command := commandSplit(m.Content)
-	if command[0] == "!Hello" {
-		s.ChannelMessageSend(m.ChannelID, "Hello")
-	}
-	if (m.Content == callCommand+" -h") || (m.Content == callCommand+" -help") || (m.Content == callCommand+" help") {
-		s.ChannelMessageSend(m.ChannelID, checkclhelp())
-	}
-	if m.Content == "!taisho" {
-		urls, e := GetAlbumUrls(table, "taisho")
-		fmt.Println(e)
-		s.ChannelMessageSend(m.ChannelID, urls[0])
+	if len(command) == 0 || command[0] != callCommand {
+		return
 	}
 
-	if m.Content == callCommand {
+	if len(command) == 1 {
 		titles, err := GetAlbumTitles(table)
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, err.Error())
 		}
-		if len(titles) <= 10 {
-			for i, v := range titles {
-				s.ChannelMessageSend(m.ChannelID, getNumEmoji(i+1)+" "+v)
-			}
-			s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
-		} else {
-			for i := 0; i < 10; i++ {
-				s.ChannelMessageSend(m.ChannelID, getNumEmoji(i+1)+" "+titles[i])
-			}
-			s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
-			s.ChannelMessageEdit(m.ChannelID, m.ID, "番号を選んでね！")
+		if len(titles) > 10 {
+			titles = titles[:10]
 		}
+		for i, v := range titles {
+			s.ChannelMessageSend(m.ChannelID, getNumEmoji(i+1)+" "+v)
+		}
+		sent, err := s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, err.Error())
+		}
+		for i := range titles {
+			s.MessageReactionAdd(m.ChannelID, sent.ID, getNumEmoji(i+1))
+		}
+		return
 	}
 
-	if command[0] == callCommand && len(command) > 2 && command[1] == "create" {
+	subCommand := command[1]
+	switch subCommand {
+	case "-h", "--help", "help":
+		s.ChannelMessageSend(m.ChannelID, checkclhelp())
+	case "create":
 		if len(command) == 3 {
 			err := CreateAlbum(table, command[2])
 			if err != nil {
@@ -177,32 +175,14 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		} else {
 			s.ChannelMessageSend(m.ChannelID, "→ "+callCommand+" create titlename の形で記入してね！")
 		}
-	}
-
-	if command[0] == callCommand && len(command) > 2 && command[1] == "add" {
+	case "add":
 		err := albumadd(s, m)
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, err.Error())
 		}
 	}
-
-	if m.Content == "番号を選んでね！" && m.Author.ID == s.State.User.ID {
-		titles, err := GetAlbumTitles(table)
-		if err != nil {
-			s.ChannelMessageSend(m.ChannelID, err.Error())
-		}
-		if len(titles) <= 10 {
-			for i := 0; i < len(titles); i++ {
-				s.MessageReactionAdd(m.ChannelID, m.ID, getNumEmoji(i+1))
-			}
-		} else {
-			for i := 0; i < 10; i++ {
-				s.MessageReactionAdd(m.ChannelID, m.ID, getNumEmoji(i+1))
-			}
-			s.MessageReactionAdd(m.ChannelID, m.ID, "➡️")
-		}
-	}
 }
+
 func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	titles, err := GetAlbumTitles(table)
 	if err != nil {
@@ -233,8 +213,5 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 				s.ChannelMessageSend(r.ChannelID, url)
 			}
 		}
-	} else {
-
 	}
-
 }
