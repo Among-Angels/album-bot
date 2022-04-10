@@ -11,16 +11,20 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-//自分のbotを使用する場合はココを変更
-var callCommand = "!album"
+var callCommand string
 
 // New()の中で上書きされる可能性がある
 var table = "Albums"
 
 func New() {
 	table = os.Getenv("TABLE_NAME")
-	discordToken := "Bot " + os.Getenv("DISCORD_TOKEN")
 
+	discordToken := "Bot " + os.Getenv("DISCORD_TOKEN")
+	var ok bool
+	callCommand, ok = os.LookupEnv("CALL_COMMAND")
+	if !ok {
+		callCommand = "!album"
+	}
 	session, err := discordgo.New()
 	if err != nil {
 		fmt.Println("Error in create session")
