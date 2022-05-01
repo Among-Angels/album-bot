@@ -190,6 +190,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			s.ChannelMessageSend(m.ChannelID, err.Error())
 		}
 		if len(titles) <= 10 {
+<<<<<<< HEAD
 			for i := range titles {
 				s.MessageReactionAdd(m.ChannelID, sent.ID, getNumEmoji(i+1))
 			}
@@ -198,6 +199,17 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 				s.MessageReactionAdd(m.ChannelID, sent.ID, getNumEmoji(i+1))
 				s.MessageReactionAdd(m.ChannelID, sent.ID, "➡️")
 			}
+=======
+			for i, v := range titles {
+				s.ChannelMessageSend(m.ChannelID, getNumEmoji(i+1)+" "+v)
+				tmpstr += getNumEmoji(i+1) + " " + v + "\n"
+				if i >= 9 {
+					break
+				}
+			}
+			s.ChannelMessageSend(m.ChannelID, tmpstr)
+			s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
+>>>>>>> 6cc288a5daa819d6ba1d3bc13499871fcfea52d2
 		}
 		return
 	}
