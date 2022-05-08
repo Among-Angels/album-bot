@@ -275,10 +275,10 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 				}
 				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
 				sent, err := s.ChannelMessageSend(r.ChannelID, tmpurl)
-				s.MessageReactionAdd(r.ChannelID, sent.ID, "⬅")
 				if err != nil {
 					s.ChannelMessageSend(r.ChannelID, err.Error())
 				}
+				s.MessageReactionAdd(r.ChannelID, sent.ID, "⬅")
 			} else {
 				for i := 0; i+5*currentBot.pageindex < 5*(currentBot.pageindex+1); i++ {
 					tmpurl += " " + currentBot.urls[i+5*currentBot.pageindex]
