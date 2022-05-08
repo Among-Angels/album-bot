@@ -229,7 +229,6 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	if r.UserID != s.State.User.ID && message.Content == "番号を選んでね！" && message.Author.ID == s.State.User.ID {
 		index, NumEmojiFlag := getNumFromNumEmoji(r.MessageReaction.Emoji.Name)
 		currentBot.titleindex = index
-
 		if NumEmojiFlag {
 			s.ChannelMessageDelete(r.ChannelID, r.MessageID)
 			urls, err := GetAlbumUrls(table, titles[index])
@@ -248,10 +247,10 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 					tmpurl += " " + urls[i]
 				}
 				sent, err := s.ChannelMessageSend(r.ChannelID, tmpurl)
-				s.MessageReactionAdd(r.ChannelID, sent.ID, "➡️")
 				if err != nil {
 					s.ChannelMessageSend(r.ChannelID, err.Error())
 				}
+				s.MessageReactionAdd(r.ChannelID, sent.ID, "➡️")
 			}
 		}
 
