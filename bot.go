@@ -189,16 +189,8 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, err.Error())
 		}
-		if len(titles) <= 10 {
-			for i, v := range titles {
-				s.ChannelMessageSend(m.ChannelID, getNumEmoji(i+1)+" "+v)
-				tmpstr += getNumEmoji(i+1) + " " + v + "\n"
-				if i >= 9 {
-					break
-				}
-			}
-			s.ChannelMessageSend(m.ChannelID, tmpstr)
-			s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
+		for i := range titles {
+			s.MessageReactionAdd(m.ChannelID, sent.ID, getNumEmoji(i+1))
 		}
 		return
 	}
@@ -269,7 +261,7 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	} else if r.UserID != s.State.User.ID && message.Author.ID == s.State.User.ID {
 		if r.MessageReaction.Emoji.Name == "➡️" { //アルバムのページを進める操作
 			currentBot.pageindex += 1
-			if (5*currentBot.pageindex < len(currentBot.urls)) && (len(currentBot.urls) <= 5*(currentBot.pageindex+1)) {
+			if (5*currentBot.pageindex < len(currentBot.urls)) && (len(currentBot.urls) <= 5*(currentBot.pageindex+1)) { //pageindexが右端ページにあるときの処理
 				for i := 0; i+5*currentBot.pageindex < len(currentBot.urls); i++ {
 					tmpurl += " " + currentBot.urls[i+5*currentBot.pageindex]
 				}
@@ -279,41 +271,41 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 					s.ChannelMessageSend(r.ChannelID, err.Error())
 				}
 				s.MessageReactionAdd(r.ChannelID, sent.ID, "⬅")
-			} else {
+			} else { //pageindexが中間ページにあるときの処理
 				for i := 0; i+5*currentBot.pageindex < 5*(currentBot.pageindex+1); i++ {
 					tmpurl += " " + currentBot.urls[i+5*currentBot.pageindex]
 				}
 				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
 				sent, err := s.ChannelMessageSend(r.ChannelID, tmpurl)
-				s.MessageReactionAdd(r.ChannelID, sent.ID, "⬅")
-				s.MessageReactionAdd(r.ChannelID, sent.ID, "➡️")
 				if err != nil {
 					s.ChannelMessageSend(r.ChannelID, err.Error())
 				}
+				s.MessageReactionAdd(r.ChannelID, sent.ID, "⬅")
+				s.MessageReactionAdd(r.ChannelID, sent.ID, "➡️")
 			}
 		} else if r.MessageReaction.Emoji.Name == "⬅" { //アルバムのページを戻す操作予定
 			currentBot.pageindex -= 1
-			if currentBot.pageindex == 0 {
+			if currentBot.pageindex == 0 { //pageindexが左端ページにあるときの処理
 				for i := 0; i < 5; i++ {
 					tmpurl += " " + currentBot.urls[i]
 				}
 				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
 				sent, err := s.ChannelMessageSend(r.ChannelID, tmpurl)
-				s.MessageReactionAdd(r.ChannelID, sent.ID, "➡️")
 				if err != nil {
 					s.ChannelMessageSend(r.ChannelID, err.Error())
 				}
-			} else {
+				s.MessageReactionAdd(r.ChannelID, sent.ID, "➡️")
+			} else { //pageindexが中間ページにあるときの処理
 				for i := 0; i+5*currentBot.pageindex < len(currentBot.urls); i++ {
 					tmpurl += " " + currentBot.urls[i+5*currentBot.pageindex]
 				}
 				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
 				sent, err := s.ChannelMessageSend(r.ChannelID, tmpurl)
-				s.MessageReactionAdd(r.ChannelID, sent.ID, "⬅")
-				s.MessageReactionAdd(r.ChannelID, sent.ID, "➡️")
 				if err != nil {
 					s.ChannelMessageSend(r.ChannelID, err.Error())
 				}
+				s.MessageReactionAdd(r.ChannelID, sent.ID, "⬅")
+				s.MessageReactionAdd(r.ChannelID, sent.ID, "➡️")
 			}
 		}
 	}
