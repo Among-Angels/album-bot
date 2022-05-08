@@ -14,7 +14,31 @@ import (
 var callCommand string
 
 // New()の中で上書きされる可能性がある
+// var titleindex = 0 //titleのindexを保持
+// var pageindex = 0  //ページのindexを保持
+
 var table = "Albums"
+
+var currentBot *albumBot = &albumBot{}
+
+type albumBot struct {
+	//channelID        string
+	//messageID        string
+	//reactionID       string
+	//albumSelectionID string
+	urls []string
+	//selectedTitle    string
+	pageindex  int
+	titleindex int
+}
+
+func newBot() *albumBot {
+	return &albumBot{}
+}
+
+/* func (bot *albumBot) setAlbumSelectionID(id string) error {
+	bot.albumSelectionID = id
+} */
 
 func New() {
 	table = os.Getenv("TABLE_NAME")
@@ -46,6 +70,7 @@ func New() {
 
 	<-sc
 }
+
 func contains(s []string, e string) bool {
 	for _, v := range s {
 		if e == v {
@@ -145,16 +170,21 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if len(command) == 1 {
+		currentBot = newBot()
+
 		titles, err := GetAlbumTitles(table)
+		tmpstr := ""
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, err.Error())
 		}
+
 		if len(titles) > 10 {
 			titles = titles[:10]
 		}
 		for i, v := range titles {
-			s.ChannelMessageSend(m.ChannelID, getNumEmoji(i+1)+" "+v)
+			tmpstr += getNumEmoji(i+1) + " " + v + "\n"
 		}
+		s.ChannelMessageSend(m.ChannelID, tmpstr)
 		sent, err := s.ChannelMessageSend(m.ChannelID, "番号を選んでね！")
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, err.Error())
@@ -186,9 +216,9 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 	}
 }
-
 func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	titles, err := GetAlbumTitles(table)
+	tmpurl := ""
 	if err != nil {
 		s.ChannelMessageSend(r.ChannelID, err.Error())
 	}
@@ -196,25 +226,85 @@ func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	if err != nil {
 		s.ChannelMessageSend(r.ChannelID, err.Error())
 	}
-	//botが投稿した"番号を選んでね！"のメッセージのみ処理
 	if r.UserID != s.State.User.ID && message.Content == "番号を選んでね！" && message.Author.ID == s.State.User.ID {
-		if r.MessageReaction.Emoji.Name == "➡️" { //アルバムのページを進める操作予定
-
-		} else if r.MessageReaction.Emoji.Name == "⬅️" { //アルバムのページを戻す操作予定
-
-		}
-
 		index, NumEmojiFlag := getNumFromNumEmoji(r.MessageReaction.Emoji.Name)
+		currentBot.titleindex = index
 		if NumEmojiFlag {
 			s.ChannelMessageDelete(r.ChannelID, r.MessageID)
-
 			urls, err := GetAlbumUrls(table, titles[index])
 			if err != nil {
 				s.ChannelMessageSend(r.ChannelID, err.Error())
 			}
+			currentBot.urls = urls
 			s.ChannelMessageSend(r.ChannelID, "> "+titles[index])
-			for _, url := range urls {
-				s.ChannelMessageSend(r.ChannelID, url)
+			if len(urls) < 5 {
+				for i := 0; i < len(urls); i++ {
+					tmpurl += " " + urls[i]
+				}
+				s.ChannelMessageSend(r.ChannelID, tmpurl)
+			} else {
+				for i := 0; i < 5; i++ {
+					tmpurl += " " + urls[i]
+				}
+				sent, err := s.ChannelMessageSend(r.ChannelID, tmpurl)
+				if err != nil {
+					s.ChannelMessageSend(r.ChannelID, err.Error())
+				}
+				s.MessageReactionAdd(r.ChannelID, sent.ID, "➡️")
+			}
+		}
+
+		// 矢印押した人がbot以外である
+		// メッセージのauthorがalbum botである
+		// メッセージIDをグローバルで持つ必要がある？
+	} else if r.UserID != s.State.User.ID && message.Author.ID == s.State.User.ID {
+		if r.MessageReaction.Emoji.Name == "➡️" { //アルバムのページを進める操作
+			currentBot.pageindex += 1
+			if (5*currentBot.pageindex < len(currentBot.urls)) && (len(currentBot.urls) <= 5*(currentBot.pageindex+1)) { //pageindexが右端ページにあるときの処理
+				for i := 0; i+5*currentBot.pageindex < len(currentBot.urls); i++ {
+					tmpurl += " " + currentBot.urls[i+5*currentBot.pageindex]
+				}
+				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
+				sent, err := s.ChannelMessageSend(r.ChannelID, tmpurl)
+				if err != nil {
+					s.ChannelMessageSend(r.ChannelID, err.Error())
+				}
+				s.MessageReactionAdd(r.ChannelID, sent.ID, "⬅")
+			} else { //pageindexが中間ページにあるときの処理
+				for i := 0; i+5*currentBot.pageindex < 5*(currentBot.pageindex+1); i++ {
+					tmpurl += " " + currentBot.urls[i+5*currentBot.pageindex]
+				}
+				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
+				sent, err := s.ChannelMessageSend(r.ChannelID, tmpurl)
+				if err != nil {
+					s.ChannelMessageSend(r.ChannelID, err.Error())
+				}
+				s.MessageReactionAdd(r.ChannelID, sent.ID, "⬅")
+				s.MessageReactionAdd(r.ChannelID, sent.ID, "➡️")
+			}
+		} else if r.MessageReaction.Emoji.Name == "⬅" { //アルバムのページを戻す操作予定
+			currentBot.pageindex -= 1
+			if currentBot.pageindex == 0 { //pageindexが左端ページにあるときの処理
+				for i := 0; i < 5; i++ {
+					tmpurl += " " + currentBot.urls[i]
+				}
+				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
+				sent, err := s.ChannelMessageSend(r.ChannelID, tmpurl)
+				if err != nil {
+					s.ChannelMessageSend(r.ChannelID, err.Error())
+				}
+				s.MessageReactionAdd(r.ChannelID, sent.ID, "➡️")
+			} else { //pageindexが中間ページにあるときの処理
+				for i := 0; i+5*currentBot.pageindex < len(currentBot.urls); i++ {
+					tmpurl += " " + currentBot.urls[i+5*currentBot.pageindex]
+				}
+				s.ChannelMessageDelete(r.ChannelID, r.MessageID)
+				sent, err := s.ChannelMessageSend(r.ChannelID, tmpurl)
+				if err != nil {
+					s.ChannelMessageSend(r.ChannelID, err.Error())
+				}
+				s.MessageReactionAdd(r.ChannelID, sent.ID, "⬅")
+				s.MessageReactionAdd(r.ChannelID, sent.ID, "➡️")
 			}
 		}
 	}
