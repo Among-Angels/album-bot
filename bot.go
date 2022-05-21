@@ -116,7 +116,7 @@ func getNumFromNumEmoji(s string) (int, bool) {
 	return 0, false
 }
 
-func albumadd(s *discordgo.Session, m *discordgo.MessageCreate) error {
+func albumAdd(s *discordgo.Session, m *discordgo.MessageCreate) error {
 	contents := strings.Split(m.Content, " ")
 	if len(contents) != 3 {
 		return fmt.Errorf("→ " + callCommand + " add actual_albumname の形でファイルをアップロードしてね！")
@@ -210,7 +210,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			s.ChannelMessageSend(m.ChannelID, "→ "+callCommand+" create titlename の形で記入してね！")
 		}
 	case "add":
-		err := albumadd(s, m)
+		err := albumAdd(s, m)
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, err.Error())
 		}
