@@ -19,6 +19,7 @@ var table = "Albums"
 
 var currentBot *albumBot = &albumBot{}
 
+// 今botが呼ばれているチャンネルのID、選択されているアルバム、見ているページの位置の情報を持つ
 type albumBot struct {
 	channelID     string
 	selectedAlbum string
@@ -53,12 +54,20 @@ func (bot *albumBot) imageOffset() (start int, end int) {
 	return
 }
 
+// 指定された枚数目の画像のURLを返す
+func (bot *albumBot) imageUrl(index int) string {
+	if index > len(bot.urls) {
+		return ""
+	}
+	return bot.urls[index-1]
+}
+
 // 現在のページの画像を返す。
 func (bot *albumBot) pageImages() string {
 	start, end := bot.imageOffset()
 	var s string
 	for i := start; i <= end; i++ {
-		s += bot.urls[i-1] + "\n"
+		s += bot.imageUrl(i) + "\n"
 	}
 	return s
 }
@@ -111,6 +120,22 @@ func (bot *albumBot) goToPrevPage(s *discordgo.Session) (messageID string) {
 	}
 	bot.pageindex--
 	return bot.sendPage(s)
+}
+
+// 指定された枚数目の画像を削除する
+func (bot *albumBot) deleteImage(s *discordgo.Session, index int) {
+	if index > len(bot.urls) {
+		s.ChannelMessageSend(bot.channelID, "Error: 画像がありません")
+		return
+	}
+	url := bot.imageUrl(index)
+	err := DeleteImage(table, bot.selectedAlbum, url)
+	if err != nil {
+		s.ChannelMessageSend(bot.channelID, "Error: "+err.Error())
+		return
+	}
+	bot.loadAlbum(bot.selectedAlbum)
+	s.ChannelMessageSend(bot.channelID, "画像を削除しました")
 }
 
 func New() {
@@ -224,11 +249,29 @@ func albumAdd(s *discordgo.Session, m *discordgo.MessageCreate) error {
 	return nil
 }
 
+func deleteImageCommand(s *discordgo.Session, command []string) {
+	err_msg := "→ " + callCommand + " delete actual_albumname index の形で画像を削除してね！"
+	if len(command) != 3 {
+		s.ChannelMessageSend(currentBot.channelID, err_msg)
+		return
+	}
+	index, err := strconv.Atoi(command[2])
+	if err != nil {
+		s.ChannelMessageSend(currentBot.channelID, err_msg)
+		return
+	}
+	if index < 1 {
+		s.ChannelMessageSend(currentBot.channelID, err_msg)
+		return
+	}
+	currentBot.deleteImage(s, index)
+}
+
 func checkclhelp() string {
 	return callCommand + "\n・登録されているアルバムから見たいアルバムを選択する\n" +
 		callCommand + " create albumtitle\n・アルバムを作成する\n" +
-		callCommand + " add actual_albumname\n・アルバムに写真を追加する（以下のコマンドと同時に写真を添付）\n"
-
+		callCommand + " add actual_albumname\n・アルバムに画像を追加する（以下のコマンドと同時に画像を添付）\n" +
+		callCommand + " delete index\n・アルバムからindex枚目の画像を削除する\n"
 }
 
 func commandSplit(str string) []string {
@@ -287,6 +330,8 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, err.Error())
 		}
+	case "delete":
+		deleteImageCommand(s, command)
 	}
 }
 func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
