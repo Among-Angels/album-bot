@@ -250,7 +250,7 @@ func albumAdd(s *discordgo.Session, m *discordgo.MessageCreate) error {
 }
 
 func deleteImageCommand(s *discordgo.Session, command []string) {
-	err_msg := "→ " + callCommand + " delete actual_albumname index の形で画像を削除してね！"
+	err_msg := "→ " + callCommand + " delete index の形で画像を削除してね！"
 	if len(command) != 3 {
 		s.ChannelMessageSend(currentBot.channelID, err_msg)
 		return
