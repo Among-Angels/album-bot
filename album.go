@@ -2,6 +2,7 @@ package albumbot
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"time"
@@ -162,6 +163,56 @@ func CreateAlbum(table, title string) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+// ChangeAlbumTitleは与えられたアルバム名oldをnewに変更します
+// Titleはパーティションキーに設定されていて直接更新できないので、
+// 新しいタイトルが使用されていないか確認 -> 古いタイトルのアルバム削除 -> 新しいタイトルのアルバム作成
+// の順で処理します
+func ChangeAlbumTitle(table, old, new string) error {
+	awsTable := aws.String(table)
+
+	queryInput := &dynamodb.QueryInput{
+		TableName: awsTable,
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":new": &types.AttributeValueMemberS{Value: new},
+		},
+		KeyConditionExpression: aws.String("Title = :new"),
+	}
+	queryRes, err := dbClient.Query(context.TODO(), queryInput)
+	if err != nil {
+		return err
+	}
+	if queryRes.Count > 0 {
+		return errors.New("既に同じタイトルのアルバムが存在します")
+	}
+
+	deleteInput := &dynamodb.DeleteItemInput{
+		TableName: awsTable,
+		Key: map[string]types.AttributeValue{
+			"Title": &types.AttributeValueMemberS{Value: old},
+		},
+		ReturnValues: "ALL_OLD",
+	}
+	deleteRes, err := dbClient.DeleteItem(context.TODO(), deleteInput)
+	if err != nil {
+		return err
+	}
+
+	putInput := &dynamodb.PutItemInput{
+		TableName: awsTable,
+		Item: map[string]types.AttributeValue{
+			"Title":      &types.AttributeValueMemberS{Value: new},
+			"AlbumIndex": deleteRes.Attributes["AlbumIndex"],
+			"urls":       deleteRes.Attributes["urls"],
+		},
+	}
+	_, err = dbClient.PutItem(context.TODO(), putInput)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
