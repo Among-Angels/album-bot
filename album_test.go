@@ -233,6 +233,54 @@ func TestCreateAndDeleteAlbum(t *testing.T) {
 	}
 }
 
+func TestChangeAlbumTitle(t *testing.T) {
+	type args struct {
+		table string
+		old   string
+		new   string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal case",
+			args: args{
+				table: tableForTest,
+				old:   "_testOld",
+				new:   "_testNew",
+			},
+			wantErr: false,
+		},
+		{
+			name: "error case",
+			args: args{
+				table: tableForTest,
+				old:   "_testNew",
+				new:   "_test",
+			},
+			wantErr: true,
+		},
+		{
+			name: "post process",
+			args: args{
+				table: tableForTest,
+				old:   "_testNew",
+				new:   "_testOld",
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := ChangeAlbumTitle(tt.args.table, tt.args.old, tt.args.new); (err != nil) != tt.wantErr {
+				t.Errorf("ChangeAlbumTitle() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestPostAndDeleteImage(t *testing.T) {
 	type args struct {
 		table string
