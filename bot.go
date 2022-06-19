@@ -249,6 +249,28 @@ func albumAdd(s *discordgo.Session, m *discordgo.MessageCreate) error {
 	return nil
 }
 
+func renameAlbum(s *discordgo.Session, m *discordgo.MessageCreate) error {
+	contents := strings.Split(m.Content, " ")
+	if len(contents) != 4 {
+		return fmt.Errorf("→ " + callCommand + " rename old_albumname new_albumnameでアルバム名が変更できるよ！")
+	}
+	oldtitle := contents[2]
+	newtitle := contents[3]
+	titles, err := GetAlbumTitles(table)
+	if err != nil {
+		return err
+	}
+	if !contains(titles, oldtitle) {
+		return fmt.Errorf("%sというアルバムはなかったよ。", oldtitle)
+	}
+	if contains(titles, newtitle) {
+		return fmt.Errorf("%sというアルバムはもうあるよ。", newtitle)
+	}
+	ChangeAlbumTitle(table, oldtitle, newtitle)
+	s.ChannelMessageSend(m.ChannelID, oldtitle+"を"+newtitle+"という名前に変更したよ！")
+	return nil
+}
+
 func deleteImageCommand(s *discordgo.Session, command []string) {
 	err_msg := "→ " + callCommand + " delete index の形で画像を削除してね！"
 	if len(command) != 3 {
@@ -271,7 +293,8 @@ func checkclhelp() string {
 	return callCommand + "\n・登録されているアルバムから見たいアルバムを選択する\n" +
 		callCommand + " create albumtitle\n・アルバムを作成する\n" +
 		callCommand + " add actual_albumname\n・アルバムに画像を追加する（以下のコマンドと同時に画像を添付）\n" +
-		callCommand + " delete index\n・アルバムからindex枚目の画像を削除する\n"
+		callCommand + " delete index\n・アルバムからindex枚目の画像を削除する\n" +
+		callCommand + " rename old_albumname new_albumname\n・アルバム名をold_albumnameからnew_albumnameに変更する\n"
 }
 
 func commandSplit(str string) []string {
@@ -332,6 +355,12 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 	case "delete":
 		deleteImageCommand(s, command)
+
+	case "rename":
+		err := renameAlbum(s, m)
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, err.Error())
+		}
 	}
 }
 func onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
