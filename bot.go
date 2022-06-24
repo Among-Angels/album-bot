@@ -360,7 +360,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		err := renameAlbum(s, m)
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, err.Error())
-			}
+		}
 	case "erase":
 		if len(command) == 3 {
 			err := DeleteAlbum(table, command[2])
