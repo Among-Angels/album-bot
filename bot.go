@@ -74,16 +74,24 @@ func (bot *albumBot) pageImages() string {
 
 // 現在のページの画像をDiscordに送信する
 func (bot *albumBot) sendPage(s *discordgo.Session) (messageID string) {
-	_, err := s.ChannelMessageSend(bot.channelID, bot.pageImages())
-	if err != nil {
-		s.ChannelMessageSend(bot.channelID, "Error: "+err.Error())
+	if len(bot.urls) == 0 {
+		sent, err := s.ChannelMessageSend(bot.channelID, "このアルバムには画像が追加されていないよ！")
+		if err != nil {
+			s.ChannelMessageSend(bot.channelID, "Error: "+err.Error())
+		}
+		return sent.ID
+	} else {
+		_, err := s.ChannelMessageSend(bot.channelID, bot.pageImages())
+		if err != nil {
+			s.ChannelMessageSend(bot.channelID, "Error: "+err.Error())
+		}
+		start, end := currentBot.imageOffset()
+		sent, err := s.ChannelMessageSend(bot.channelID, fmt.Sprint(start, "枚目~", end, "枚目"))
+		if err != nil {
+			s.ChannelMessageSend(bot.channelID, "Error: "+err.Error())
+		}
+		return sent.ID
 	}
-	start, end := currentBot.imageOffset()
-	sent, err := s.ChannelMessageSend(bot.channelID, fmt.Sprint(start, "枚目~", end, "枚目"))
-	if err != nil {
-		s.ChannelMessageSend(bot.channelID, "Error: "+err.Error())
-	}
-	return sent.ID
 }
 
 func (bot *albumBot) hasNextPage() bool {
